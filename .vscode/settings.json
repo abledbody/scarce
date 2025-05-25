@@ -16,7 +16,8 @@
 		">>="
 	],
 	"Lua.diagnostics.disable": [
-		"deprecated"
+		"deprecated",
+		"trailing-space"
 	],
 	"Lua.runtime.version": "Lua 5.4",
 	"editor.rulers": [87],
