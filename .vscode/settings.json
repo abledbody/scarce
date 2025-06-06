@@ -19,6 +19,16 @@
 		"deprecated",
 		"trailing-space"
 	],
+	"Lua.diagnostics.neededFileStatus": {
+		"incomplete-signature-doc": "Any",
+	},
+	"Lua.diagnostics.groupSeverity": {
+		"type-check": "Error",
+	},
+	"Lua.diagnostics.severity": {
+		"no-unknown": "Error",
+		"incomplete-signature-doc": "Error"
+	},
 	"Lua.runtime.version": "Lua 5.4",
 	"editor.rulers": [87],
 }

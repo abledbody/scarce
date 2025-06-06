@@ -14,46 +14,66 @@ local function to_key(self, pos)
 	return self.pitch * pos.y + mid(pos.x, 0, self.pitch - 1)
 end
 
+--- @param gfx userdata
+--- @param coltab userdata
+--- @param color integer
 local function color_in(gfx, coltab, color)
 	local cam_x, cam_y = camera()
+	local cx, cy, cw, ch = clip()
 	set_draw_target(gfx)
 	memmap(coltab, 0x8000)
 	poke(0x550b, 0x3f)
+	
 	rectfill(0, 0, gfx:width(), gfx:height() or 1, color)
+	
 	poke(0x550b, 0x00)
 	unmap(coltab)
 	set_draw_target()
+	clip(cx, cy, cw, ch)
 	camera(cam_x, cam_y)
 end
-	
+
+--- @param self Entity
+--- @param color integer
+local function set_color(self, color)
+	self.color = color
+	self.sprite_ud = nil
+end
 
 --- @param self Entity
 --- @param coltab userdata
 --- @param tile_size integer
 local function draw(self, coltab, tile_size)
-	local sprite = get_spr(self.sprite):copy()
-	
-	color_in(sprite, coltab, self.color)
+	if not self.sprite_ud then
+		self.sprite_ud = get_spr(self.sprite_i):copy()
+		color_in(self.sprite_ud, coltab, self.color)
+	end
 	
 	local scr_pos = self.pos * tile_size
-	spr(sprite, scr_pos.x, scr_pos.y)
+	spr(self.sprite_ud, scr_pos.x, scr_pos.y)
 end
 
 --- @param entity_map EntityMap
 --- @param pos userdata
---- @param sprite integer
+--- @param sprite_i integer
 --- @param color integer?
 --- @param tooltip string?
 --- @return Entity entity
-local function new(entity_map, pos, sprite, color, tooltip)
+local function new(entity_map, pos, sprite_i, color, tooltip)
 	--- @class Entity
+	--- @field sprite_i integer
+	--- @field color integer
+	--- @field sprite_ud userdata?
+	--- @field tooltip string?
+	--- @field pos userdata
 	local entity = {
-		sprite = sprite,
+		sprite_i = sprite_i,
 		color = color or 7,
 		tooltip = tooltip,
 		pos = pos,
 		
 		draw = draw,
+		set_color = set_color,
 	}
 	
 	entity_map:add(entity)
@@ -99,6 +119,8 @@ local function add_to_map(self, entity)
 	insert(entities[key], entity)
 end
 
+--- @param self EntityMap
+--- @param entity Entity
 local function remove_from_map(self, entity)
 	local entities = self.entities
 	local key = self:to_key(entity.pos)
@@ -113,6 +135,7 @@ local function remove_from_map(self, entity)
 end
 
 --- @param pitch integer
+--- @return EntityMap
 local function new_map(pitch)
 	--- @class EntityMap
 	--- @field entities table<integer, Entity[]>

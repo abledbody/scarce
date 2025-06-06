@@ -10,8 +10,8 @@ local PLAYER_COLOR = 4
 local function interpret_inputs(self, entity_map)
 	local dest = self.entity.pos
 	dest += vec(
-		(btnp(1) and 1 or 0) - (btnp(0) and 1 or 0),
-		(btnp(3) and 1 or 0) - (btnp(2) and 1 or 0)
+		(keyp("d") and 1 or 0) - (keyp("a") and 1 or 0),
+		(keyp("s") and 1 or 0) - (keyp("w") and 1 or 0)
 	)
 	
 	if dest.x == self.entity.pos.x and dest.y == self.entity.pos.y then return end
@@ -25,8 +25,11 @@ local function animate(self, tile_size)
 	self.display_pos = lerp(self.display_pos, self.entity.pos * tile_size + 0.5, 0.4)
 end
 
---- @return Player
+--- @param entity_map EntityMap
+--- @param pos userdata
+--- @param color_over_coltab userdata
 --- @param tile_size integer
+--- @return Player
 local function new(entity_map, pos, color_over_coltab, tile_size)
 	--- @class Player
 	local player = {
@@ -38,7 +41,7 @@ local function new(entity_map, pos, color_over_coltab, tile_size)
 	}
 	
 	player.entity.draw = function(self)
-		local sprite = get_spr(self.sprite):copy()
+		local sprite = get_spr(self.sprite_i):copy()
 		m_entities.color_in(sprite, color_over_coltab, self.color)
 		spr(sprite, player.display_pos.x, player.display_pos.y)
 	end

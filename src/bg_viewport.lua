@@ -28,8 +28,8 @@ local function move_view(self, cam_pos, prev_cam_pos)
 	if not self.surface then return end
 	
 	-- Round the camera positions to avoid floating point issues.
-	cam_pos:add(0.5):idiv(1,true)
-	prev_cam_pos:add(0.5):idiv(1,true)
+	cam_pos = cam_pos // 1
+	prev_cam_pos = prev_cam_pos // 1
 	
 	local dx, dy = cam_pos.x - prev_cam_pos.x, cam_pos.y - prev_cam_pos.y
 	

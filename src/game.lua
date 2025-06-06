@@ -6,15 +6,17 @@ local m_tooltip = require("src/tooltip")
 local m_mouse = require("src/mouse")
 local m_entities = require("src/entities")
 local m_bg_viewport = require("src/bg_viewport")
-local m_intersection = require("src/intersection")
+local m_game_viewport = require("src/game_viewport")
 local m_player = require("src/player")
+local m_math = require("src/math")
 
 ---------------------------------------Constants---------------------------------------
 
 local MAP_WIDTH = 32
 local TILE_SIZE = get_spr(0):width()
-local VIEWPORT_COLUMNS = 30
+local VIEWPORT_COLUMNS = 15
 local VIEWPORT_ROWS = 15
+local VIEWPORT_POS = vec(0, 0)
 
 --------------------------------------Game State---------------------------------------
 
@@ -23,13 +25,14 @@ local game --- @type GameState
 --- @param entity_map EntityMap
 --- @param cam_pos userdata
 --- @param player Player
---- @param map_viewport BackgroundViewport
+--- @param game_viewport GameViewport
+--- @param color_over_coltab userdata
 --- @return GameState
 local function new_game(
 	entity_map,
 	cam_pos,
 	player,
-	map_viewport,
+	game_viewport,
 	color_over_coltab
 )
 	--- @class GameState
@@ -37,9 +40,8 @@ local function new_game(
 		tooltip = m_tooltip.new(),
 		entity_map = entity_map,
 		cam_pos = cam_pos,
-		dragging_viewport = false,
 		player = player,
-		map_viewport = map_viewport,
+		viewport = game_viewport,
 		color_over_coltab = color_over_coltab,
 	}
 	return gameState
@@ -60,10 +62,15 @@ function _init()
 		unmap(color_over_coltab)
 	end
 		
-	local map_viewport = m_bg_viewport.new(
-		vec(VIEWPORT_COLUMNS * TILE_SIZE, VIEWPORT_ROWS * TILE_SIZE),
+	local bg_viewport = m_bg_viewport.new(
+		vec(VIEWPORT_COLUMNS, VIEWPORT_ROWS) * TILE_SIZE,
 		draw_map
 	)
+	local game_viewport = m_game_viewport.new(
+		VIEWPORT_POS,
+		bg_viewport
+	)
+	
 	local entity_map = m_entities.new_map(MAP_WIDTH)
 	m_entities.new(
 		entity_map,
@@ -77,7 +84,7 @@ function _init()
 		entity_map,
 		vec(0, 0),
 		m_player.new(entity_map, vec(10, 10), color_over_coltab, TILE_SIZE),
-		map_viewport,
+		game_viewport,
 		color_over_coltab
 	)
 end
@@ -91,11 +98,10 @@ function _update()
 	game.player:animate(TILE_SIZE)
 	
 	local mouse_pos = m_mouse.position()
-	local mouse_map_coords = (mouse_pos + game.cam_pos) // TILE_SIZE --- @type userdata
-	
-	local mouse_in_viewport =
-		m_intersection.point_aabb(mouse_pos, vec(0,0), game.map_viewport.size)
-	local entity = mouse_in_viewport
+	local mouse_map_coords =
+		(game.viewport:screen_to_viewport(mouse_pos) + game.cam_pos - 1) // TILE_SIZE
+		
+	local entity = game.viewport:point_inside(mouse_pos)
 		and entity_map:get(mouse_map_coords) or nil
 	
 	game.tooltip:set_text(entity and entity[1] and entity[1].tooltip)
@@ -103,26 +109,25 @@ function _update()
 	
 	local last_cam_pos = game.cam_pos:copy()
 	
-	game.dragging_viewport = mouse_in_viewport and m_mouse.down(1) 
-		or game.dragging_viewport
-		and not m_mouse.up(1)
+	game.cam_pos = m_math.lerp(
+		game.cam_pos,
+		(game.player.entity.pos + 0.5) * TILE_SIZE - game.viewport.bg.size * 0.5 + 0.5,
+		0.2
+	)
 	
-	if game.dragging_viewport then
-		game.cam_pos -= m_mouse.delta()
-	end
-	
-	game.map_viewport:move_view(game.cam_pos, last_cam_pos)
+	game.viewport.bg:move_view(game.cam_pos, last_cam_pos)
 end
 
 function _draw()
 	cls(0)
 	
-	game.map_viewport:draw(vec(0, 0), game.cam_pos)
-	clip(0, 0, VIEWPORT_COLUMNS * TILE_SIZE, VIEWPORT_ROWS * TILE_SIZE)
-	camera(game.cam_pos.x, game.cam_pos.y)
+	game.viewport:draw(game.cam_pos)
+	local viewport_translate = game.viewport:screen_to_viewport(game.cam_pos)
+	camera(viewport_translate.x, viewport_translate.y)
+	game.viewport:clip()
 	game.entity_map:draw(game.color_over_coltab, TILE_SIZE)
-	camera()
 	clip()
+	camera()
 	game.tooltip:draw()
 	
 	--- @diagnostic disable-next-line: err-esc
