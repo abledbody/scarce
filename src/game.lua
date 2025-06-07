@@ -58,6 +58,7 @@ function _init()
 	window()
 	local screen_w, screen_h = get_display():attribs()
 	fetch(DATP .. "pal/0.pal"):poke(0x5000)
+	fetch(DATP .. "font/0.font"):poke(0x4000)
 	
 	local map_data = fetch(DATP.."map/0.map")
 	local map_bmp = map_data[2].bmp
@@ -83,7 +84,7 @@ function _init()
 	local text_window = m_text_window.new(
 		vec(text_window_x, m_ui.BORDER_WIDTH),
 		vec(screen_w - text_window_x - m_ui.BORDER_WIDTH, screen_h - m_ui.BORDER_WIDTH * 2),
-		11,
+		9,
 		500
 	)
 	
@@ -139,11 +140,12 @@ function _update()
 	if btnp(4) then
 		local foo = ""
 		local last_word = ""
-		for _ = 1, rnd(60) + 3 do
+		for i = 1, rnd(60) + 3 do
 			local new_word
 			repeat
 				new_word = rnd{"has", "anyone", "really", "been", "far", "even", "as", "decided", "to", "use", "go", "want", "do", "look", "more", "like"}
 			until(last_word ~= new_word)
+			if i == 1 then new_word = string.upper(new_word[1]) .. new_word:sub(2) end
 			foo = foo .. " " .. new_word
 			last_word = new_word
 		end
