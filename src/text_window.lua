@@ -76,7 +76,8 @@ local function redraw_buffer(self)
 	for i = 1, line_count do
 		local line = self.lines[self.line_i - i + 1]
 		local y = self.size.y - i * self.line_height
-		print(line, 1, y, 7)
+		---@diagnostic disable-next-line: err-esc
+		print("\^o0ff" .. line, 1, y, 7)
 	end
 	
 	set_draw_target()
@@ -88,17 +89,16 @@ end
 local function push(self, msg)
 	local following = self.line_i == #self.lines
 	local removed = self:add_msg_wrapped(msg)
-	-- If we're at the bottom of the history, scroll with the new message.
 	if following then
 		self:set_line(#self.lines)
 	else
-		self:set_line(self.line_i)
+		self:scroll(-removed)
 	end
 end
 
 local function set_line(self, line_i)
 	local max_lines = floor(self.size.y / self.line_height)
-	self.line_i = min(max(line_i, max_lines), #self.lines)
+	self.line_i = min(max(line_i, 1 + max_lines), #self.lines)
 	self.buffer_dirty = true
 end
 
