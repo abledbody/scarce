@@ -2,13 +2,15 @@ include"src/require.lua"
 
 -------------------------------------Dependencies--------------------------------------
 
-local m_tooltip = require("src/tooltip")
-local m_mouse = require("src/mouse")
-local m_entities = require("src/entities")
-local m_bg_viewport = require("src/bg_viewport")
-local m_game_viewport = require("src/game_viewport")
-local m_player = require("src/player")
-local m_math = require("src/math")
+local m_tooltip = require"src/tooltip"
+local m_mouse = require"src/mouse"
+local m_entities = require"src/entities"
+local m_bg_viewport = require"src/bg_viewport"
+local m_game_viewport = require"src/game_viewport"
+local m_player = require"src/player"
+local m_math = require"src/math"
+local m_ui = require"src/ui"
+local m_text_window = require"src/text_window"
 
 ---------------------------------------Constants---------------------------------------
 
@@ -16,7 +18,7 @@ local MAP_WIDTH = 32
 local TILE_SIZE = get_spr(0):width()
 local VIEWPORT_COLUMNS = 15
 local VIEWPORT_ROWS = 15
-local VIEWPORT_POS = vec(0, 0)
+local VIEWPORT_POS = vec(3, 3)
 
 --------------------------------------Game State---------------------------------------
 
@@ -27,12 +29,14 @@ local game --- @type GameState
 --- @param player Player
 --- @param game_viewport GameViewport
 --- @param color_over_coltab userdata
+--- @param text_window TextWindow
 --- @return GameState
 local function new_game(
 	entity_map,
 	cam_pos,
 	player,
 	game_viewport,
+	text_window,
 	color_over_coltab
 )
 	--- @class GameState
@@ -42,6 +46,7 @@ local function new_game(
 		cam_pos = cam_pos,
 		player = player,
 		viewport = game_viewport,
+		text_window = text_window,
 		color_over_coltab = color_over_coltab,
 	}
 	return gameState
@@ -50,7 +55,10 @@ end
 ----------------------------------Picotron Callbacks-----------------------------------
 
 function _init()
-	window {}
+	window()
+	local screen_w, screen_h = get_display():attribs()
+	fetch(DATP .. "pal/0.pal"):poke(0x5000)
+	
 	local map_data = fetch(DATP.."map/0.map")
 	local map_bmp = map_data[2].bmp
 	local map_cols = map_data[1].bmp
@@ -71,6 +79,14 @@ function _init()
 		bg_viewport
 	)
 	
+	local text_window_x = game_viewport.size.x + m_ui.BORDER_WIDTH * 3
+	local text_window = m_text_window.new(
+		vec(text_window_x, m_ui.BORDER_WIDTH),
+		vec(screen_w - text_window_x - m_ui.BORDER_WIDTH, screen_h - m_ui.BORDER_WIDTH * 2),
+		11,
+		500
+	)
+	
 	local entity_map = m_entities.new_map(MAP_WIDTH)
 	m_entities.new(
 		entity_map,
@@ -85,6 +101,7 @@ function _init()
 		vec(0, 0),
 		m_player.new(entity_map, vec(10, 10), color_over_coltab, TILE_SIZE),
 		game_viewport,
+		text_window,
 		color_over_coltab
 	)
 end
@@ -116,6 +133,22 @@ function _update()
 	)
 	
 	game.viewport.bg:move_view(game.cam_pos, last_cam_pos)
+	
+	game.text_window:scroll(m_mouse.scroll_delta().y * -5)
+	
+	if btnp(4) then
+		local foo = ""
+		local last_word = ""
+		for _ = 1, rnd(60) + 3 do
+			local new_word
+			repeat
+				new_word = rnd{"has", "anyone", "really", "been", "far", "even", "as", "decided", "to", "use", "go", "want", "do", "look", "more", "like"}
+			until(last_word ~= new_word)
+			foo = foo .. " " .. new_word
+			last_word = new_word
+		end
+		game.text_window:push(foo .. "?")
+	end
 end
 
 function _draw()
@@ -128,6 +161,8 @@ function _draw()
 	game.entity_map:draw(game.color_over_coltab, TILE_SIZE)
 	clip()
 	camera()
+	game.text_window:draw()
+	game.text_window:draw()
 	game.tooltip:draw()
 	
 	--- @diagnostic disable-next-line: err-esc

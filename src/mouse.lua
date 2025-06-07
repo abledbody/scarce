@@ -4,13 +4,15 @@ local last_mb = 0 --- @type integer The last mouse button state.
 local mb = 0 --- @type integer The current mouse button state.
 local mouse_delta = vec(0, 0) --- @type userdata The mouse delta from the last frame.
 local mouse_pos = vec(0, 0) --- @type userdata The current mouse position.
+local scroll = vec(0, 0)
 
 --- Must be called at the start of each frame to update the mouse state.
 local function frame_start()
-	local mx, my, new_mb = mouse()
+	local mx, my, new_mb, sx, sy = mouse()
 	local new_mouse_pos = vec(mx, my)
 	mouse_delta = new_mouse_pos - mouse_pos
 	mouse_pos = new_mouse_pos
+	scroll = vec(sx, sy)
 	last_mb = mb
 	mb = new_mb
 end
@@ -47,6 +49,10 @@ local function delta()
 	return mouse_delta
 end
 
+local function scroll_delta()
+	return scroll
+end
+
 return {
 	frame_start = frame_start,
 	pressed = pressed,
@@ -54,4 +60,5 @@ return {
 	up = up,
 	position = position,
 	delta = delta,
+	scroll_delta = scroll_delta
 }

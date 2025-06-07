@@ -1,23 +1,20 @@
 local m_intersection = require"src/intersection"
 local m_colors = require"src/colors"
-
-local BORDER_WIDTH = 3
+local m_ui = require"src/ui"
 
 --- @param self GameViewport
 --- @param camera_pos userdata
 local function draw(self, camera_pos)
-	local cx, cy = camera(-self.pos.x, -self.pos.y)
-	rect(0, 0, self.size.x - 1, self.size.y - 1, m_colors.UI_MID)
-	rect(1, 1, self.size.x - 2, self.size.y - 2, m_colors.UI_LIGHT)
-	rect(2, 2, self.size.x - 3, self.size.y - 3, m_colors.UI_DARK)
-	self.bg:draw(self.pos + BORDER_WIDTH, camera_pos)
-	camera(cx, cy)
+	m_ui.draw_with_border(
+		function() self.bg:draw(self.pos, camera_pos) end,
+		self.pos, self.size, m_colors
+	)
 end
 
 local function clip_to_viewport(self, clip_previous)
 	return clip(
-		self.pos.x + BORDER_WIDTH,
-		self.pos.y + BORDER_WIDTH,
+		self.pos.x,
+		self.pos.y,
 		self.bg.size.x,
 		self.bg.size.y,
 		clip_previous
@@ -25,7 +22,7 @@ local function clip_to_viewport(self, clip_previous)
 end
 
 local function screen_to_viewport(self, pt)
-	return pt - self.pos - BORDER_WIDTH
+	return pt - self.pos
 end
 
 local function point_inside(self, pos)
@@ -42,7 +39,7 @@ local function new(pos, bg_viewport)
 	local viewport = {
 		pos = pos,
 		bg = bg_viewport,
-		size = bg_viewport.size + BORDER_WIDTH * 2,
+		size = bg_viewport.size,
 		
 		draw = draw,
 		clip = clip_to_viewport,
