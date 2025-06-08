@@ -26,8 +26,8 @@ local function add_msg_wrapped(self, msg)
 	
 	insert(self.lines, "") -- Add a new line to separate messages.
 	
-	local line = ""
-	local x = 0
+	local line = msg:match("^%s*")
+	local x = print(line, 0, 0) or 0
 	for word, whitespace in msg:gmatch("(%S+)(%s*)") do
 		-- If a word goes over the edge of the window, put it on the next line.
 		local w = print(word, 0, 0) or 0
@@ -57,10 +57,9 @@ local function add_msg_wrapped(self, msg)
 	
 	camera(cx, cy)
 	
-	local removed = 0
+	local removed = max(0, #self.lines - self.max_history)
 	for _ = 1, #self.lines - self.max_history do
 		remove(self.lines, 1)
-		removed += 1
 	end
 	return removed
 end

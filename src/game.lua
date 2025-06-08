@@ -61,16 +61,31 @@ function _init()
 	fetch(DATP .. "font/0.font"):poke(0x4000)
 	
 	local map_data = fetch(DATP.."map/0.map")
-	local map_bmp = map_data[2].bmp
-	local map_cols = map_data[1].bmp
+	local bg_map_bmp = map_data[4].bmp
+	local bg_map_cols = map_data[3].bmp
+	local fg_map_bmp = map_data[2].bmp
+	local fg_map_cols = map_data[1].bmp
 	local color_over_coltab = get_spr(192)
 	local function draw_map()
-		map(map_bmp)
-		memmap(color_over_coltab, 0x8000)
-		map(map_cols)
-		unmap(color_over_coltab)
-	end
+		-- Draw the foreground with mask 1
+		poke(0x5509, 0x7f)
+		map(fg_map_bmp)
+		poke(0x5509, 0x3f)
 		
+		-- Color in the foreground
+		memmap(color_over_coltab, 0x8000)
+		map(fg_map_cols)
+		unmap(color_over_coltab)
+		
+		-- Draw and color the background only where mask 1 is not set
+		poke(0x550a, 0x7f)
+		map(bg_map_bmp)
+		memmap(color_over_coltab, 0x8000)
+		map(bg_map_cols)
+		unmap(color_over_coltab)
+		poke(0x550a, 0x3f)
+	end
+	
 	local bg_viewport = m_bg_viewport.new(
 		vec(VIEWPORT_COLUMNS, VIEWPORT_ROWS) * TILE_SIZE,
 		draw_map
@@ -166,6 +181,8 @@ function _draw()
 	game.text_window:draw()
 	game.text_window:draw()
 	game.tooltip:draw()
+	
+	if btn(5) then get_display():bxor(get_display():shr(6), true) end
 	
 	--- @diagnostic disable-next-line: err-esc
 	print(string.format("\014\^o1ff\^-bcpu: %.2f%%", stat(1) * 100), 0, 0, 7)

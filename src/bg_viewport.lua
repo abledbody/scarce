@@ -50,7 +50,9 @@ local function move_view(self, cam_pos, prev_cam_pos)
 	-- Pillarbox redraw.
 	local rx, ry, rw, rh = dx > 0 and w - dx or 0, 0, abs_dx, h
 	clip(rx, ry, rw, rh)
+	poke(0x5509, 0xff)
 	rectfill(rx, ry, rx + rw - 1, ry + rh - 1, 0)
+	poke(0x5509, 0x3f)
 	camera(cam_pos.x, cam_pos.y)
 	self.draw_op()
 	camera()
@@ -58,7 +60,9 @@ local function move_view(self, cam_pos, prev_cam_pos)
 	-- Letterbox redraw.
 	rx, ry, rw, rh = dx < 0 and -dx or 0, dy > 0 and h - dy or 0, w - abs_dx, abs_dy
 	clip(rx, ry, rw, rh)
+	poke(0x5509, 0xff)
 	rectfill(rx, ry, rx + rw - 1, ry + rh - 1, 0)
+	poke(0x5509, 0x3f)
 	camera(cam_pos.x, cam_pos.y)
 	self.draw_op()
 	camera()
