@@ -1,0 +1,25 @@
+{
+	"workspace.library": [
+		"C:\\lualib\\picotron-definitions"
+	],
+	"runtime.nonstandardSymbol": [
+		"!=",
+		"+=",
+		"-=",
+		"*=",
+		"/=",
+		"%=",
+		"^=",
+		"|=",
+		"&=",
+		"<<=",
+		">>="
+	],
+	"diagnostics.disable": [
+		"trailing-space",
+		"deprecated",
+		"err-esc",
+		"need-check-nil"
+	],
+	"runtime.version": "Lua 5.4"
+}
