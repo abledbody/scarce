@@ -1,8 +1,9 @@
 local _modules = {}
 
 function require(name)
-	if _modules[name] == nil then
-		_modules[name] = include(name:gsub('%.', '/') .. '.lua')
+	local path = fullpath(name:gsub('%.', '/') .. '.lua')
+	if _modules[path] == nil then
+		_modules[path] = include(path)
 	end
-	return _modules[name]
+	return _modules[path]
 end

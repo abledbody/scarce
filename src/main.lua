@@ -8,9 +8,17 @@ local load_mods = require"src/load_mods"
 local fmt = string.format
 local insert = table.insert
 
----------------------------------------Constants---------------------------------------
+----------------------------------------Globals----------------------------------------
 
-
+WORKP = fullpath("")
+---@diagnostic disable-next-line: lowercase-global
+function require_ext(path)
+	local current_wd = pwd()
+	cd(WORKP)
+	local out = require(path)
+	cd(current_wd)
+	return out
+end
 
 --------------------------------------Game State---------------------------------------
 
@@ -81,11 +89,17 @@ local function new_context(mods)
 	}
 	
 	for _, mod in ipairs(mods) do
+		cd(mod.dir)
 		if mod.resources then
 			for _, resource in ipairs(mod.resources) do
-				res:register(ctx, resource)
+				if res:register(ctx, resource) then
+					printh("Registered resource: " .. resource.key)
+				else
+					printh("Failed to find resource: " .. resource.key)
+				end
 			end
 		end
+		cd(WORKP)
 	end
 	
 	return ctx

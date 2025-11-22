@@ -190,14 +190,15 @@ function m_system_registry:build_order()
 	
 	-- Use the index maps to get the system functions out of the hooks in order.
 	local function compile(tree, key)
-		self[key .. "_systems"] = {}
+		local systems = {}
 		if tree then
 			for _, k in ipairs(tree.keys) do
 				if k != key then
-					insert(self[key], key2hook[k].system)
+					insert(systems, key2hook[k].system)
 				end
 			end
 		end
+		self[key .. "_systems"] = systems
 	end
 	
 	compile(init_systems, "init")
@@ -251,7 +252,7 @@ end
 ---@return string[]|nil
 function m_system_registry:sanitize_hooks()
 	local messages = {}
-	for _, hook in self.system_hooks do
+	for _, hook in ipairs(self.system_hooks) do
 		local msg = validate_hook(hook)
 		if msg then
 			insert(messages, msg)
