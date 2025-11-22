@@ -2,8 +2,9 @@ local insert = table.insert
 local fmt = string.format
 
 ---@class Mod
----@field system_hooks Hook[]
----@field resources Resource[]
+---@field system_hooks Hook[]?
+---@field resources Resource[]?
+---@field res_registrators ResourceRegistrator[]?
 
 return function()
 	-- Mod order is a list of the names of mods in the order they should be loaded and executed.

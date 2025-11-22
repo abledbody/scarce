@@ -2,20 +2,23 @@
 local m_resource_registry = {}
 m_resource_registry.__index = m_resource_registry
 
+---@class ResourceRegistrator
+---@field kind string
+---@field func fun(ctx: Context, value: any)
+
 ---@class Resource
 ---@field kind string
 ---@field key string
 ---@field value any
 
----@param resource_type string
----@param registrator fun(value: any)
-function m_resource_registry:define(resource_type, registrator)
-	self.registrators[resource_type] = registrator
+---@param registrator ResourceRegistrator
+function m_resource_registry:define(registrator)
+	self.registrators[registrator.kind] = registrator.func
 end
 
 ---@param resource Resource
-function m_resource_registry:register(resource)
-	self.resources[resource.key] = self.registrators[resource.kind](resource.value)
+function m_resource_registry:register(ctx, resource)
+	self.resources[resource.key] = self.registrators[resource.kind](ctx, resource.value)
 end
 
 ---@param key string

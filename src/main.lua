@@ -23,11 +23,15 @@ local function new_context(mods)
 	local res = new_resource_registry()
 	
 	for _, mod in ipairs(mods) do
-		for _, hook in ipairs(mod.system_hooks) do
-			system_reg:register(hook)
+		if mod.system_hooks then
+			for _, hook in ipairs(mod.system_hooks) do
+				system_reg:register(hook)
+			end
 		end
-		for _, resource in ipairs(mod.resources) do
-			res:register(resource)
+		if mod.res_registrators then
+			for _, registrator in ipairs(mod.res_registrators) do
+				res:define(registrator)
+			end
 		end
 	end
 	
@@ -75,6 +79,15 @@ local function new_context(mods)
 		system_reg = system_reg,
 		res = res,
 	}
+	
+	for _, mod in ipairs(mods) do
+		if mod.resources then
+			for _, resource in ipairs(mod.resources) do
+				res:register(ctx, resource)
+			end
+		end
+	end
+	
 	return ctx
 end
 
