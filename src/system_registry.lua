@@ -1,5 +1,6 @@
 local fmt = string.format
 local insert = table.insert
+local remove = table.remove
 
 local new_index_map = require"src/index_map"
 local default_ctor = require"src/utils".default_ctor
@@ -9,17 +10,18 @@ local new_multi_bimap = require"src/multi_bimap"
 ---@field target_relation "Before"|"After"
 ---@field target_key string
 ---@field system_key string
----@field system fun(ctx: GameState)
+---@field system fun(ctx: Context)
 
----@class Registry
+---@class SystemRegistry
 ---@field system_hooks Hook[]
----@field init_systems fun(ctx: GameState)[]
----@field update_systems fun(ctx: GameState)[]
-local m_registry = {}
-m_registry.__index = m_registry
+---@field init_systems fun(ctx: Context)[]
+---@field update_systems fun(ctx: Context)[]
+---@field draw_systems fun(ctx: Context)[]
+local m_system_registry = {}
+m_system_registry.__index = m_system_registry
 
 ---@param hook Hook
-function m_registry:register(hook)
+function m_system_registry:register(hook)
 	insert(self.system_hooks, hook)
 end
 
@@ -94,7 +96,13 @@ local function identify_components(key2hook)
 	return components, roots, loops
 end
 
-function m_registry:build_order()
+---@return table<integer, Hook[]>
+---@return IndexMap<Hook>[]
+---@return string[]
+---@return string[]?
+function m_system_registry:build_order()
+	local hook_errors = self:sanitize_hooks()
+	
 	-- self.system_hooks defines a directed peseudoforest.
 	-- We need to:
 	-- 1. Find each component
@@ -158,7 +166,7 @@ function m_registry:build_order()
 	end
 	
 	local orphans = {}
-	local init_systems, update_systems
+	local init_systems, update_systems, draw_systems
 	
 	for comp_id in pairs(components.key2set) do
 		if loops[comp_id] then goto continue end
@@ -171,6 +179,8 @@ function m_registry:build_order()
 			init_systems = tree
 		elseif root_key == "update" then
 			update_systems = tree
+		elseif root_key == "draw" then
+			draw_systems = tree
 		else
 			insert(orphans, tree)
 		end
@@ -179,39 +189,81 @@ function m_registry:build_order()
 	end
 	
 	-- Use the index maps to get the system functions out of the hooks in order.
-	self.init_systems = {}
-	if init_systems then
-		for _, k in ipairs(init_systems.keys) do
-			if k != "init" then
-				insert(self.init_systems, key2hook[k].system)
+	local function compile(tree, key)
+		self[key .. "_systems"] = {}
+		if tree then
+			for _, k in ipairs(tree.keys) do
+				if k != key then
+					insert(self[key], key2hook[k].system)
+				end
 			end
 		end
 	end
 	
-	self.update_systems = {}
-	if update_systems then
-		for _, k in ipairs(update_systems.keys) do
-			if k != "update" then
-				insert(self.update_systems, key2hook[k].system)
-			end
-		end
-	end
+	compile(init_systems, "init")
+	compile(update_systems, "update")
+	compile(draw_systems, "draw")
 	
 	-- Organize the loops neatly into a dense array.
 	local loops_packed = {}
-	for k, v in pairs(loops) do
+	for _, v in pairs(loops) do
 		insert(loops_packed, v)
 	end
 	
-	return loops_packed, orphans, duplicates
+	return loops_packed, orphans, duplicates, hook_errors
 end
 
-local function new()
+---@param hook Hook
+---@return string? error_message
+local function validate_hook(hook)
+	local system_key_type = type(hook.system_key)
+	local target_key_type = type(hook.target_key)
+	local system_type = type(hook.system)
+	local relation_type = type(hook.target_relation)
+	local wrong_system_key_type = system_key_type != "string"
+	local wrong_target_key_type = target_key_type != "string"
+	local wrong_system_type = system_type != "function"
+	local wrong_relation_type = relation_type != "string"
+	local wrong_relation_value =
+		hook.target_relation != "Before"
+		and hook.target_relation != "After"
+	
+	local msg
+	if wrong_system_key_type then
+		msg = fmt("Invalid system key type %s. Must be a string.", system_key_type)
+	end
+	if wrong_target_key_type then
+		msg = (msg and msg .. "\n" or "") .. fmt("Invalid system key target key type %s. Must be a string.", system_type)
+	end
+	if wrong_system_type then
+		msg = (msg and msg .. "\n" or "") .. fmt("Invalid system type %s. Must be a function which takes a context parameter.", system_type)
+	end
+	if wrong_relation_type then
+		msg = (msg and msg .. "\n" or "") .. fmt("Invalid system relation type %s. Must be \"After\" or \"Before\".", relation_type)
+	end
+	if wrong_relation_value then
+		msg = (msg and msg .. "\n" or "") .. fmt("Invalid system relation %s. Must be \"After\" or \"Before\".", hook.target_relation)
+	end
+	
+	return msg
+end
+
+---@return string[]|nil
+function m_system_registry:sanitize_hooks()
+	local messages = {}
+	for _, hook in self.system_hooks do
+		local msg = validate_hook(hook)
+		if msg then
+			insert(messages, msg)
+			remove(self.system_hooks)
+		end
+	end
+	
+	return #messages > 0 and messages or nil
+end
+
+return function()
 	return setmetatable({
 		system_hooks = {},
-	}, m_registry)
+	}, m_system_registry)
 end
-
-return {
-	new = new,
-}
