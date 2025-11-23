@@ -1,8 +1,8 @@
 ---@type Mod
 local mod = {
-	system_hooks = require"systems",
-	resources = require"resources",
-	res_registrators = require"res_registrators"
+	system_hooks = require"core/systems",
+	resources = require"core/resources",
+	res_registrators = require"core/res_registrators"
 }
 
 return mod

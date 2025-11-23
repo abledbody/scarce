@@ -1,20 +1,17 @@
----@type Hook[]
-local hooks = {
-	{system_key = "core_init", target_key = "init", target_relation = "After", system = 
-		function(_)
-			window()
-		end
-	},
-	{system_key = "core_init_palette", target_key = "core_init", target_relation = "After", system =
-		function(ctx)
-			memmap(ctx.res:get"core_palette", 0x5000)
-		end
-	},
-	{system_key = "core_init_font", target_key = "core_init", target_relation = "After", system =
-		function(ctx)
-			ctx.res:get"core_font_charcoal":poke(0x4000)
-		end
-	},
-}
+local InitSystems = require"core/init_systems"
+local DrawSystems = require"core/draw_systems"
+local insert = table.insert
+
+local hooks = {}
+
+for _, hook in ipairs(InitSystems) do
+	insert(hooks, hook)
+end
+-- for _, hook in ipairs(update_systems) do
+-- 	insert(init_systems, hook)
+-- end
+for _, hook in ipairs(DrawSystems) do
+	insert(hooks, hook)
+end
 
 return hooks

@@ -1,14 +1,17 @@
+local UI = require"core/src/ui"
 local insert, remove = table.insert, table.remove
 local ceil, floor, max, min = math.ceil, math.floor, math.max, math.min
 
-local m_colors = require"src/colors"
-local m_ui = require"src/ui"
 
-local function draw(self)
-	m_ui.draw_with_border(
+---@class TextWindow
+local m_text_window = {}
+m_text_window.__index = m_text_window
+
+function m_text_window:draw(colors)
+	UI.draw_with_border(
 		function()
 			if self.buffer_dirty then
-				self:redraw_buffer()
+				self:redraw_buffer(colors)
 				self.buffer_dirty = false
 			end
 			blit(self.buffer, nil, nil, nil, self.pos.x, self.pos.y)
@@ -17,11 +20,11 @@ local function draw(self)
 				spr(sprite, self.size.x - sprite:width() - 1, self.size.y - sprite:height() - 1)
 			end
 		end,
-		self.pos, self.size, m_colors
+		self.pos, self.size, colors
 	)
 end
 
-local function add_msg_wrapped(self, msg)
+function m_text_window:add_msg_wrapped(msg)
 	local cx, cy = camera(-1000)
 	
 	insert(self.lines, "") -- Add a new line to separate messages.
@@ -64,12 +67,11 @@ local function add_msg_wrapped(self, msg)
 	return removed
 end
 
----@param self TextWindow
-local function redraw_buffer(self)
+function m_text_window:redraw_buffer(colors)
 	local cx, cy = camera()
 	set_draw_target(self.buffer)
 	
-	cls(m_colors.ui_background)
+	cls(colors.ui_background)
 	local max_lines = ceil(self.size.y / self.line_height)
 	local line_count = min(#self.lines, max_lines)
 	for i = 1, line_count do
@@ -83,9 +85,8 @@ local function redraw_buffer(self)
 	camera(cx, cy)
 end
 
----@param self TextWindow
 ---@param msg string
-local function push(self, msg)
+function m_text_window:push(msg)
 	local following = self.line_i == #self.lines
 	local removed = self:add_msg_wrapped(msg)
 	if following then
@@ -95,15 +96,15 @@ local function push(self, msg)
 	end
 end
 
-local function set_line(self, line_i)
+---@param line_i integer
+function m_text_window:set_line(line_i)
 	local max_lines = floor(self.size.y / self.line_height)
 	self.line_i = min(max(line_i, 1 + max_lines), #self.lines)
 	self.buffer_dirty = true
 end
 
----@param self TextWindow
 ---@param dline integer
-local function scroll(self, dline)
+function m_text_window:scroll(dline)
 	if dline == 0 then return end
 	self:set_line(self.line_i + dline)
 end
@@ -119,18 +120,9 @@ local function new(pos, size, line_height, max_history)
 		max_history = max_history or 1000,
 		buffer = userdata("u8", size.x, size.y),
 		buffer_dirty = true,
-		
-		draw = draw,
-		redraw_buffer = redraw_buffer,
-		add_msg_wrapped = add_msg_wrapped,
-		push = push,
-		set_line = set_line,
-		scroll = scroll,
 	}
 	
-	return text_window
+	return setmetatable(text_window, m_text_window)
 end
 
-return {
-	new = new,
-}
+return new

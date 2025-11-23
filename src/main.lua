@@ -84,23 +84,10 @@ local function new_context(mods)
 	
 	--- @class Context
 	local ctx = {
+		mods = mods,
 		system_reg = system_reg,
 		res = res,
 	}
-	
-	for _, mod in ipairs(mods) do
-		cd(mod.dir)
-		if mod.resources then
-			for _, resource in ipairs(mod.resources) do
-				if res:register(ctx, resource) then
-					printh("Registered resource: " .. resource.key)
-				else
-					printh("Failed to find resource: " .. resource.key)
-				end
-			end
-		end
-		cd(WORKP)
-	end
 	
 	return ctx
 end
@@ -108,8 +95,8 @@ end
 ----------------------------------Picotron Callbacks-----------------------------------
 
 function _init()
+	cd("src/mods")
 	local mods = load_mods()
-	
 	ctx = new_context(mods)
 	
 	for _, system in ipairs(ctx.system_reg.init_systems) do

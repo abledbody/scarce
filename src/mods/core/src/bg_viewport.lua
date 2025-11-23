@@ -1,10 +1,13 @@
-local abs,max = math.abs,math.max
+local abs, max = math.abs, math.max
 
---- Draws the map to the screen.
---- @param self BackgroundViewport The viewport to draw.
---- @param position userdata The position of the viewport on the screen.
---- @param cam_pos userdata The camera position.
-local function draw(self, position, cam_pos)
+---@class BackgroundViewport A viewport for displaying and efficiently redrawing a map.
+local m_bg_viewport = {}
+m_bg_viewport.__index = m_bg_viewport
+
+---Draws the map to the screen.
+---@param position userdata The position of the viewport on the screen.
+---@param cam_pos userdata The camera position.
+function m_bg_viewport:draw(position, cam_pos)
 	-- The first time we draw, there will be nothing in the buffer.
 	if not self.surface then
 		self.surface = userdata("u8", self.size.x, self.size.y)
@@ -20,11 +23,10 @@ local function draw(self, position, cam_pos)
 	blit(self.surface, nil, nil, nil, position.x, position.y)
 end
 
---- Moves the viewport based on the change in camera position.
---- @param self BackgroundViewport The viewport to move.
---- @param cam_pos userdata The current camera position.
---- @param prev_cam_pos userdata The previous camera position.
-local function move_view(self, cam_pos, prev_cam_pos)
+---Moves the viewport based on the change in camera position.
+---@param cam_pos userdata The current camera position.
+---@param prev_cam_pos userdata The previous camera position.
+function m_bg_viewport:move_view(self, cam_pos, prev_cam_pos)
 	if not self.surface then return end
 	
 	-- Round the camera positions to avoid floating point issues.
@@ -36,7 +38,7 @@ local function move_view(self, cam_pos, prev_cam_pos)
 	if dx == 0 and dy == 0 then return end
 	
 	local abs_dx, abs_dy = abs(dx), abs(dy)
-	local w,h = self.surface:attribs()
+	local w, h = self.surface:attribs()
 	
 	blit(
 		self.surface, self.surface,
@@ -71,25 +73,20 @@ local function move_view(self, cam_pos, prev_cam_pos)
 	set_draw_target()
 end
 
---- Creates a new MapViewport.
---- @param size userdata The size of the viewport.
---- @param draw_op function The function to draw the map.
---- @return BackgroundViewport viewport A new MapViewport instance.
+---Creates a new MapViewport.
+---@param size userdata The size of the viewport.
+---@param draw_op function The function to draw the map.
+---@return BackgroundViewport viewport A new MapViewport instance.
 local function new(size, draw_op)
-	--- @class BackgroundViewport A viewport for displaying and efficiently redrawing a map.
-	--- @field draw_op function The function to draw the map.
-	--- @field surface userdata? The draw target for the viewport. When nil, the next call to draw will create it.
+	---@class BackgroundViewport
+	---@field draw_op function The function to draw the map.
+	---@field surface userdata? The draw target for the viewport. When nil, the next call to draw will create it.
 	local viewport = {
 		size = size,
 		draw_op = draw_op,
-		
-		draw = draw,
-		move_view = move_view,
 	}
-
-	return viewport
+	
+	return setmetatable(viewport, m_bg_viewport)
 end
 
-return {
-	new = new
-}
+return new

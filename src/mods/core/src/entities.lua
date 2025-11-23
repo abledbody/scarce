@@ -1,19 +1,5 @@
 local insert = table.insert
 
---- @param self EntityMap
---- @param key integer
---- @return userdata coords
-local function to_coords(self, key)
-	return vec(key % self.pitch, key // self.pitch)
-end
-
---- @param self EntityMap
---- @param pos userdata
---- @return integer key
-local function to_key(self, pos)
-	return self.pitch * pos.y + mid(pos.x, 0, self.pitch - 1)
-end
-
 --- @param gfx userdata
 --- @param coltab userdata
 --- @param color integer
@@ -23,7 +9,7 @@ local function color_in(gfx, coltab, color)
 	set_draw_target(gfx)
 	memmap(coltab, 0x8000)
 	poke(0x550b, 0x3f)
-	
+		
 	rectfill(0, 0, gfx:width(), gfx:height() or 1, color)
 	
 	poke(0x550b, 0x00)
@@ -33,17 +19,19 @@ local function color_in(gfx, coltab, color)
 	camera(cam_x, cam_y)
 end
 
---- @param self Entity
+---@class Entity
+local m_entity = {}
+m_entity.__index = m_entity
+
 --- @param color integer
-local function set_color(self, color)
+function m_entity:set_color(color)
 	self.color = color
 	self.sprite_ud = nil
 end
 
---- @param self Entity
 --- @param coltab userdata
 --- @param tile_size integer
-local function draw(self, coltab, tile_size)
+function m_entity:draw(coltab, tile_size)
 	if not self.sprite_ud then
 		self.sprite_ud = get_spr(self.sprite_i):copy()
 		color_in(self.sprite_ud, coltab, self.color)
@@ -53,13 +41,28 @@ local function draw(self, coltab, tile_size)
 	spr(self.sprite_ud, scr_pos.x, scr_pos.y)
 end
 
---- @param entity_map EntityMap
+---@class EntityMap
+local m_entity_map = {}
+m_entity_map.__index = m_entity_map
+
+--- @param key integer
+--- @return userdata coords
+function m_entity_map:to_coords(key)
+	return vec(key % self.pitch, key // self.pitch)
+end
+
+--- @param pos userdata
+--- @return integer key
+function m_entity_map:to_key(pos)
+	return self.pitch * pos.y + mid(pos.x, 0, self.pitch - 1)
+end
+
 --- @param pos userdata
 --- @param sprite_i integer
 --- @param color integer?
 --- @param tooltip string?
 --- @return Entity entity
-local function new(entity_map, pos, sprite_i, color, tooltip)
+function m_entity_map:new(pos, sprite_i, color, tooltip)
 	--- @class Entity
 	--- @field sprite_i integer
 	--- @field color integer
@@ -71,20 +74,18 @@ local function new(entity_map, pos, sprite_i, color, tooltip)
 		color = color or 7,
 		tooltip = tooltip,
 		pos = pos,
-		
-		draw = draw,
-		set_color = set_color,
 	}
 	
-	entity_map:add(entity)
+	setmetatable(entity, m_entity)
+	
+	self:add(entity)
 	
 	return entity
 end
 
---- @param self EntityMap
 --- @param coltab userdata
 --- @param tile_size integer
-local function draw_all(self, coltab, tile_size)
+function m_entity_map:draw(coltab, tile_size)
 	for _,v in pairs(self.entities) do
 		for _, entity in ipairs(v) do
 			entity:draw(coltab, tile_size)
@@ -92,36 +93,32 @@ local function draw_all(self, coltab, tile_size)
 	end
 end
 
---- @param self EntityMap
 --- @param pos userdata
 --- @return Entity[]?
-local function get_tile(self, pos)
+function m_entity_map:get_tile(pos)
 	return self.entities[self:to_key(pos)]
 end
 
---- @param self EntityMap
 --- @param entity Entity
 --- @param new_pos userdata
-local function move_tile(self, entity, new_pos)
+function m_entity_map:move_tile(entity, new_pos)
 	self:remove(entity)
 	entity.pos = vec(mid(new_pos.x, 0, self.pitch - 1), new_pos.y)
 	self:add(entity)
 end
 
---- @param self EntityMap
 --- @param entity Entity
-local function add_to_map(self, entity)
+function m_entity_map:add(entity)
 	local entities = self.entities
-	local key = to_key(self, entity.pos)
+	local key = self:to_key(entity.pos)
 	if not entities[key] then
 		entities[key] = {}
 	end
 	insert(entities[key], entity)
 end
 
---- @param self EntityMap
 --- @param entity Entity
-local function remove_from_map(self, entity)
+function m_entity_map:remove(entity)
 	local entities = self.entities
 	local key = self:to_key(entity.pos)
 	assert(
@@ -142,23 +139,12 @@ local function new_map(pitch)
 	local map = {
 		entities = {},
 		pitch = pitch,
-		
-		get = get_tile,
-		add = add_to_map,
-		remove = remove_from_map,
-		move = move_tile,
-		
-		to_coords = to_coords,
-		to_key = to_key,
-		
-		draw = draw_all,
 	}
 	
-	return map
+	return setmetatable(map, m_entity_map)
 end
 
 return {
-	new = new,
 	new_map = new_map,
 	color_in = color_in,
 }

@@ -15,21 +15,17 @@ return function()
 		store("/appdata/scarce/mod_order.pod", mod_order)
 	end
 	
-	local working_directory = pwd()
 	local mods = {}
 	for _, mod_name in ipairs(mod_order) do
-		local mod_directory_path = fmt("src/mods/%s/", mod_name)
-		local mod_file_path = mod_directory_path .. "mod"
+		local mod_file_path = mod_name .. "/mod"
 		local mod = fetch(mod_file_path .. ".lua")
 		
 		if not mod then
 			printh(fmt("Mod not found: \"%s\". Skipping.", mod_file_path))
 			goto continue
 		end
-		cd(mod_directory_path)
-		mod = require("mod")
-		cd(working_directory)
-		mod.dir = mod_directory_path
+		mod = require(mod_file_path)
+		mod.dir = mod_name
 		insert(mods, mod)
 		::continue::
 	end
