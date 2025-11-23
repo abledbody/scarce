@@ -3,7 +3,7 @@ local resources = {
     {kind = "pal", key = "core_palette", value = "core/pal/core.pal"},
     {kind = "font", key = "core_font_charcoal", value = "core/font/charcoal.font"},
     
-    {kind = "sprite", key = "core_coltab_color_over", value = {file = "core/gfx/coltabs.gfx", i = 0}},
+    {kind = "coltab", key = "core_coltab_color_over", value = {file = "core/gfx/coltabs.gfx", i = 0}},
     
     {kind = "map", key = "core_map_test", value = "core/map/0.map"},
     

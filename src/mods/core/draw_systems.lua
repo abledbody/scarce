@@ -27,6 +27,8 @@ local hooks = {
 	},
 	{system_key = "core_draw_debug", target_key = "core_draw_text_window", target_relation = "After", system = 
 		function()
+			if btn(5) then get_display():bxor(get_display():shr(6), true) end
+			
 			print(string.format("\014\^o0ff\^-bcpu: %.2f%%", stat(1) * 100), 0, 0, 7)
 		end
 	},

@@ -86,7 +86,7 @@ local hooks = {
 			local bg_map_cols = map_data[3].bmp
 			local fg_map_bmp = map_data[2].bmp
 			local fg_map_cols = map_data[1].bmp
-			local color_over_coltab = get_spr(ctx.res:get"core_coltab_color_over")
+			local color_over_coltab = ctx.res:get"core_coltab_color_over"
 			
 			ctx.ui.draw_map = function()
 				-- Draw the foreground with mask 1
