@@ -43,7 +43,7 @@ local function new_context(mods)
 		end
 	end
 	
-	local loops, orphans, duplicates, hook_errors = system_reg:build_order()
+	local loops, orphans, hook_errors = system_reg:build_order()
 	-- While there's no way to manage this in game, let's just print and stop.
 	local errored = false
 	
@@ -62,13 +62,6 @@ local function new_context(mods)
 	if #orphans > 0 then
 		for _, orphan in ipairs(orphans) do
 			print(fmt("Orphan system tree: %s", table.concat(orphan.keys, ", ")))
-		end
-		errored = true
-	end
-	
-	if #duplicates > 0 then
-		for _, v in hook_errors do
-			print(fmt("Duplicate key: %s", v))
 		end
 		errored = true
 	end

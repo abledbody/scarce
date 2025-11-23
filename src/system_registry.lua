@@ -98,36 +98,42 @@ end
 
 ---@return table<integer, Hook[]>
 ---@return IndexMap<Hook>[]
----@return string[]
 ---@return string[]?
 function m_system_registry:build_order()
 	local hook_errors = self:sanitize_hooks()
 	
 	-- self.system_hooks defines a directed peseudoforest.
 	-- We need to:
-	-- 1. Find each component
+	-- 1. Override earlier nodes of the same key with the definitions of later nodes.
+	-- 2. Find each component
 	--	A component is defined by either a root or a cycle.
 	--	You can identify either by following targets until the target is either
 	-- 	a node you've already visited, or nil.
-	-- 2. Identify components by whether they are trees or loops
-	-- 3. Identify the exact set of nodes that loop for components which do so
-	-- 4. Produce an ordered list for each tree that:
+	-- 3. Identify components by whether they are trees or loops
+	-- 4. Identify the exact set of nodes that loop for components which do so
+	-- 5. Produce an ordered list for each tree that:
 	-- - Is ordered depth-first (children appear before siblings)
 	-- - Is ordered relative to its parent depending on whether the node specifies "Before" or "After"
 	-- - Breaks ties by maintaining the order of the original list
 
 	local key2hook = {} ---@type table<string, Hook>
 	local key2children_keys = {} ---@type table<string, IndexMap<string>>
-	local duplicates = {}
 	for _, hook in ipairs(self.system_hooks) do
 		local system_key, target_key = hook.system_key, hook.target_key
-		if key2hook[system_key] then insert(duplicates, system_key) goto continue end
+
+		local override = key2hook[system_key]
+		if override then
+			key2children_keys[override.target_key]:remove(system_key)
+			if #key2children_keys[override.target_key].keys == 0 then
+				key2children_keys[override.target_key] = nil
+			end
+		end
+		
 		key2hook[system_key] = hook
 		if target_key then
 			default_ctor(key2children_keys, target_key, new_index_map)
 				:insert(system_key)
 		end
-		::continue::
 	end
 	
 	local components, roots, loops = identify_components(key2hook)
@@ -211,7 +217,7 @@ function m_system_registry:build_order()
 		insert(loops_packed, v)
 	end
 	
-	return loops_packed, orphans, duplicates, hook_errors
+	return loops_packed, orphans, hook_errors
 end
 
 ---@param hook Hook
