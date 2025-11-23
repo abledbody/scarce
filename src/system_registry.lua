@@ -13,10 +13,6 @@ local new_multi_bimap = require"src/multi_bimap"
 ---@field system fun(ctx: Context)
 
 ---@class SystemRegistry
----@field system_hooks Hook[]
----@field init_systems fun(ctx: Context)[]
----@field update_systems fun(ctx: Context)[]
----@field draw_systems fun(ctx: Context)[]
 local m_system_registry = {}
 m_system_registry.__index = m_system_registry
 
@@ -97,7 +93,7 @@ local function identify_components(key2hook)
 end
 
 ---@return table<integer, Hook[]>
----@return IndexMap<Hook>[]
+---@return table<string, true>[]
 ---@return string[]?
 function m_system_registry:build_order()
 	local hook_errors = self:sanitize_hooks()
@@ -137,10 +133,24 @@ function m_system_registry:build_order()
 	end
 	
 	local components, roots, loops = identify_components(key2hook)
+
+	local valid_trees = {}
+	local orphans = {}
 	
-	-- Breadth-first index_map population of system order to be saved into
-	-- self.init_systems and self.update_systems
+	-- Breadth-first index_map population of system order to be saved into self
 	-- All roots which don't match get shoved into orphans.
+
+	for comp_id, tree in ipairs(components.key2set) do
+		local orphan = true
+		for _, test_key in ipairs(self.root_keys) do
+			if roots[comp_id] == test_key then
+				valid_trees[test_key] = true
+				orphan = false
+				break
+			end
+		end
+		if orphan then insert(orphans, tree) end
+	end
 	
 	local function visit(tree, system_key)
 		local children = key2children_keys[system_key]
@@ -170,30 +180,7 @@ function m_system_registry:build_order()
 			visit(tree, k)
 		end
 	end
-	
-	local orphans = {}
-	local init_systems, update_systems, draw_systems
-	
-	for comp_id in pairs(components.key2set) do
-		if loops[comp_id] then goto continue end
-		
-		local root_key = roots[comp_id]
-		local tree = new_index_map({root_key})
-		visit(tree, root_key)
-		
-		if root_key == "init" then
-			init_systems = tree
-		elseif root_key == "update" then
-			update_systems = tree
-		elseif root_key == "draw" then
-			draw_systems = tree
-		else
-			insert(orphans, tree)
-		end
-		
-		::continue::
-	end
-	
+
 	-- Use the index maps to get the system functions out of the hooks in order.
 	local function compile(tree, key)
 		local systems = {}
@@ -207,9 +194,17 @@ function m_system_registry:build_order()
 		self[key .. "_systems"] = systems
 	end
 	
-	compile(init_systems, "init")
-	compile(update_systems, "update")
-	compile(draw_systems, "draw")
+	for root_key in pairs(valid_trees) do
+		local tree = new_index_map({root_key})
+		visit(tree, root_key)
+
+		compile(tree, root_key)
+	end
+
+	for _, root_key in ipairs(self.root_keys) do
+		local systems_key = root_key .. "_systems"
+		if not self[systems_key] then self[systems_key] = {} end
+	end
 	
 	-- Organize the loops neatly into a dense array.
 	local loops_packed = {}
@@ -258,19 +253,24 @@ end
 ---@return string[]|nil
 function m_system_registry:sanitize_hooks()
 	local messages = {}
-	for _, hook in ipairs(self.system_hooks) do
+	for i = #self.system_hooks, 1, -1 do
+		local hook = self.system_hooks[i]
 		local msg = validate_hook(hook)
 		if msg then
 			insert(messages, msg)
-			remove(self.system_hooks)
+			remove(self.system_hooks, i)
 		end
 	end
 	
 	return #messages > 0 and messages or nil
 end
 
-return function()
-	return setmetatable({
+---@param root_keys string[]
+return function(root_keys)
+	---@class SystemRegistry
+	local registry = {
+		root_keys = root_keys,
 		system_hooks = {},
-	}, m_system_registry)
+	}
+	return setmetatable(registry, m_system_registry)
 end

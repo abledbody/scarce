@@ -1,3 +1,5 @@
+local insert = table.insert
+
 ---@class ResourceRegistry
 local m_resource_registry = {}
 m_resource_registry.__index = m_resource_registry
@@ -21,6 +23,11 @@ end
 function m_resource_registry:register(ctx, resource)
 	local res = self.registrators[resource.kind](ctx, resource.value)
 	if res == nil then return false end
+	
+	local kind = self.kinds[resource.kind]
+	if not kind then kind = {} self.kinds[resource.kind] = kind end
+	insert(kind, res)
+
 	self.resources[resource.key] = res
 	return true
 end
@@ -36,6 +43,7 @@ return function()
 	---@class ResourceRegistry
 	local reg = {
 		resources = {},
+		kinds = {},
 		registrators = {},
 	}
 	

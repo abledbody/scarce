@@ -27,7 +27,11 @@ local ctx --- @type Context
 ---@param mods Mod[]
 ---@return Context
 local function new_context(mods)
-	local system_reg = new_system_registry()
+	---@class SystemRegistry
+	---@field init_systems fun(ctx: Context)[]
+	---@field update_systems fun(ctx: Context)[]
+	---@field draw_systems fun(ctx: Context)[]
+	local system_reg = new_system_registry({"init", "update", "draw"})
 	local res = new_resource_registry()
 	
 	for _, mod in ipairs(mods) do
@@ -54,14 +58,18 @@ local function new_context(mods)
 				insert(keys, hook.system_key)
 			end
 			insert(keys, loop[1].system_key)
-			print(fmt("Orphan system tree: %s", table.concat(keys, " -> ")))
+			print(fmt("Cyclical system dependencies: %s", table.concat(keys, " -> ")))
 		end
 		errored = true
 	end
 	
 	if #orphans > 0 then
 		for _, orphan in ipairs(orphans) do
-			print(fmt("Orphan system tree: %s", table.concat(orphan.keys, ", ")))
+			local keys = {}
+			for key in pairs(orphan) do
+				insert(keys, key)
+			end
+			print(fmt("Orphan system tree: %s", table.concat(keys, ", ")))
 		end
 		errored = true
 	end
