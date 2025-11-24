@@ -7,7 +7,9 @@ local ceil, floor, max, min = math.ceil, math.floor, math.max, math.min
 local m_text_window = {}
 m_text_window.__index = m_text_window
 
-function m_text_window:draw(colors)
+---@param res ResourceRegistry
+function m_text_window:draw(res)
+	local colors = res:get"core_colors_ui"
 	UI.draw_with_border(
 		function()
 			if self.buffer_dirty then
@@ -16,14 +18,19 @@ function m_text_window:draw(colors)
 			end
 			blit(self.buffer, nil, nil, nil, self.pos.x, self.pos.y)
 			if self.line_i != #self.lines then
-				local sprite = get_spr(128)
-				spr(sprite, self.size.x - sprite:width() - 1, self.size.y - sprite:height() - 1)
+				local sprite = get_spr(res:get"core_sprite_ui_text_detached")
+				spr(
+					sprite,
+					self.size.x - sprite:width() - 1,
+					self.size.y - sprite:height() - 1
+				)
 			end
 		end,
 		self.pos, self.size, colors
 	)
 end
 
+---@param msg string
 function m_text_window:add_msg_wrapped(msg)
 	local cx, cy = camera(-1000)
 	

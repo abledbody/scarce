@@ -75,7 +75,7 @@ local function new_context(mods)
 	end
 	
 	if hook_errors then
-		for _, v in hook_errors do
+		for _, v in ipairs(hook_errors) do
 			print(v)
 		end
 		errored = true

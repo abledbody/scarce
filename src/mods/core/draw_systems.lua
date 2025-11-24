@@ -10,22 +10,26 @@ local hooks = {
 			local ui_cols = ctx.res:get"core_colors_ui"
 			local ui_config = ctx.res:get"core_ui_config_map"
 			local color_over = ctx.res:get"core_coltab_color_over"
-			ctx.ui.game_viewport:draw(ctx.camera_pos, ui_cols)
-			local viewport_translate = ctx.ui.game_viewport:screen_to_viewport(ctx.camera_pos)
+			ctx.ui.viewport:draw(ctx.camera_pos, ui_cols)
+			local viewport_translate = ctx.ui.viewport:screen_to_viewport(ctx.camera_pos)
 			camera(viewport_translate.x, viewport_translate.y)
-			ctx.ui.game_viewport:clip()
+			ctx.ui.viewport:clip()
 			ctx.entity_map:draw(color_over, ui_config.tile_size)
 			clip()
 			camera()
 		end
 	},
-	{system_key = "core_draw_text_window", target_key = "core_draw_viewport", target_relation = "After", system =
+	{system_key = "core_draw_text_window", target_key = "core_draw_clear", target_relation = "After", system =
 		function(ctx)
-			local ui_cols = ctx.res:get("core_colors_ui")
-			ctx.ui.text_window:draw(ui_cols)
+			ctx.ui.text_window:draw(ctx.res)
 		end
 	},
-	{system_key = "core_draw_debug", target_key = "core_draw_text_window", target_relation = "After", system = 
+	{system_key = "core_draw_tooltip", target_key = "core_draw_text_window", target_relation = "After", system =
+		function(ctx)
+			ctx.ui.tooltip:draw()
+		end
+	},
+	{system_key = "core_draw_debug", target_key = "core_draw_clear", target_relation = "After", system = 
 		function()
 			if btn(5) then get_display():bxor(get_display():shr(6), true) end
 			

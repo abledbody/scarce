@@ -95,13 +95,13 @@ end
 
 --- @param pos userdata
 --- @return Entity[]?
-function m_entity_map:get_tile(pos)
+function m_entity_map:get(pos)
 	return self.entities[self:to_key(pos)]
 end
 
 --- @param entity Entity
 --- @param new_pos userdata
-function m_entity_map:move_tile(entity, new_pos)
+function m_entity_map:move(entity, new_pos)
 	self:remove(entity)
 	entity.pos = vec(mid(new_pos.x, 0, self.pitch - 1), new_pos.y)
 	self:add(entity)

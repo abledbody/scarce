@@ -16,17 +16,17 @@ local function get_block_size(lines)
 	return block_size, sizes
 end
 
---- Advanced print function for printing multi-line text with alignment and outline options.
---- @param lines table Each line of the string to print.
---- @param block_size userdata The size of the text block.
---- @param sizes userdata The size of each line in the text block.
---- @param x number The x position to print the string at.
---- @param y number The y position to print the string at.
---- @param col integer? The color of the text.
---- @param pivot userdata The pivot point of the text block. (0,0) is top-left, (1,1) is bottom-right.
---- @param alignment "left"|"center"|"right" The alignment of the text in the block.
---- @param outline_col integer? The color of the outline.
---- @param screen_size userdata? The size of the screen.
+---Advanced print function for printing multi-line text with alignment and outline options.
+---@param lines table Each line of the string to print.
+---@param block_size userdata The size of the text block.
+---@param sizes userdata The size of each line in the text block.
+---@param x number The x position to print the string at.
+---@param y number The y position to print the string at.
+---@param col integer? The color of the text.
+---@param pivot userdata The pivot point of the text block. (0,0) is top-left, (1,1) is bottom-right.
+---@param alignment "left"|"center"|"right" The alignment of the text in the block.
+---@param outline_col integer? The color of the outline.
+---@param screen_size userdata? The size of the screen.
 local function aprint_lines(lines, block_size, sizes, x, y, col, pivot, alignment, outline_col, screen_size)
 	if screen_size then
 		x = mid(
@@ -61,15 +61,15 @@ local function aprint_lines(lines, block_size, sizes, x, y, col, pivot, alignmen
 	end
 end
 
---- Advanced print function for printing multi-line text with alignment and outline options.
---- @param str string The string to print.
---- @param x number The x position to print the string at.
---- @param y number The y position to print the string at.
---- @param col integer? The color of the text.
---- @param pivot userdata The pivot point of the text block. (0,0) is top-left, (1,1) is bottom-right.
---- @param alignment "left"|"center"|"right" The alignment of the text in the block.
---- @param outline_col integer? The color of the outline.
---- @param screen_size userdata? The size of the screen.
+---Advanced print function for printing multi-line text with alignment and outline options.
+---@param str string The string to print.
+---@param x number The x position to print the string at.
+---@param y number The y position to print the string at.
+---@param col integer? The color of the text.
+---@param pivot userdata The pivot point of the text block. (0,0) is top-left, (1,1) is bottom-right.
+---@param alignment "left"|"center"|"right" The alignment of the text in the block.
+---@param outline_col integer? The color of the outline.
+---@param screen_size userdata? The size of the screen.
 local function aprint(str, x, y, col, pivot, alignment, outline_col, screen_size)
 	local lines = str:split("\n")
 	local block_size, sizes = get_block_size(lines)

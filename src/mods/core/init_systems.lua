@@ -5,6 +5,8 @@ local new_bg_viewport = require"core/src/bg_viewport"
 local new_game_viewport = require"core/src/game_viewport"
 local new_text_window = require"core/src/text_window"
 local Entities = require"core/src/entities"
+local new_tooltip = require"core/src/tooltip"
+local new_player = require"core/src/player"
 
 ---@type Hook[]
 local hooks = {
@@ -54,29 +56,31 @@ local hooks = {
 			
 			---@class UIData
 			---@field bg_viewport BackgroundViewport
-			---@field game_viewport GameViewport
+			---@field viewport GameViewport
 			---@field draw_map function
 			---@field text_window TextWindow
+			---@field tooltip Tooltip
 			ctx.ui = {}
 			
-			ctx.ui.bg_viewport = new_bg_viewport(
-				vec(ui_config.viewport_columns, ui_config.viewport_rows) * ui_config.tile_size,
-				function() return ctx.ui.draw_map() end
-			)
-			ctx.ui.game_viewport = new_game_viewport(
+			ctx.ui.viewport = new_game_viewport(
 				ui_config.viewport_pos,
-				ctx.ui.bg_viewport
+				new_bg_viewport(
+					vec(ui_config.viewport_columns, ui_config.viewport_rows) * ui_config.tile_size,
+					function() return ctx.ui.draw_map() end
+				)
 			)
 			
 			local screen_w, screen_h = get_display():attribs()
 			
-			local text_window_x = ctx.ui.game_viewport.size.x + UI.BORDER_WIDTH * 3
+			local text_window_x = ctx.ui.viewport.size.x + UI.BORDER_WIDTH * 3
 			ctx.ui.text_window = new_text_window(
 				vec(text_window_x, UI.BORDER_WIDTH),
 				vec(screen_w - text_window_x - UI.BORDER_WIDTH, screen_h - UI.BORDER_WIDTH * 2),
 				9,
 				500
 			)
+			
+			ctx.ui.tooltip = new_tooltip()
 		end
 	},
 	{system_key = "core_init_map", target_key = "core_resource_registration", target_relation = "After", system =
@@ -117,12 +121,23 @@ local hooks = {
 			---@field entity_map EntityMap
 			
 			ctx.entity_map = Entities.new_map(ui_config.map_width)
+		end
+	},
+	{system_key = "core_init_test_entities", target_key = "core_resource_registration", target_relation = "After", system = 
+		function(ctx)
+			local ui_config = ctx.res:get"core_ui_config_map"
+			local color_over_coltab = ctx.res:get"core_coltab_color_over"
+			
+			---@class Context
+			---@field player Player
+			
 			ctx.entity_map:new(
 				vec(5,5),
-				4,
+				ctx.res:get"core_sprite_drawstring_bag",
 				25,
 				"T-shirt\n\fmA comfy shirt to wear.\n\fnFlammable\n\fnWearable\n\fcCloth"
 			)
+			ctx.player = new_player(ctx.res, ctx.entity_map, vec(10, 10), color_over_coltab, ui_config.tile_size)
 		end
 	},
 }

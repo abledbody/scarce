@@ -26,7 +26,7 @@ end
 ---Moves the viewport based on the change in camera position.
 ---@param cam_pos userdata The current camera position.
 ---@param prev_cam_pos userdata The previous camera position.
-function m_bg_viewport:move_view(self, cam_pos, prev_cam_pos)
+function m_bg_viewport:move_view(cam_pos, prev_cam_pos)
 	if not self.surface then return end
 	
 	-- Round the camera positions to avoid floating point issues.

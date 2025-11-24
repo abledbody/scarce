@@ -17,10 +17,9 @@ local function reg_sprite(ctx, value)
     return ctx.graphics:add_sprite(gfx[i])
 end
 
----@param ctx Context
 ---@param value {file: string, i: integer}
 ---@return userdata?
-local function reg_coltab(ctx, value)
+local function reg_coltab(_, value)
     local file, i = value.file, value.i
     if i >= 256 then return end
     
