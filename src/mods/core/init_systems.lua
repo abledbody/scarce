@@ -22,32 +22,17 @@ local hooks = {
 			ctx.camera_pos = vec(0, 0)
 		end
 	},
-	{system_key = "core_resource_registration", target_key = "core_init", target_relation = "After", system =
-		function (ctx)
-			for _, mod in ipairs(ctx.mods) do
-				if mod.resources then
-					for _, resource in ipairs(mod.resources) do
-						if ctx.res:register(ctx, resource) then
-							printh("Registered resource: " .. resource.key)
-						else
-							printh(fmt("Failed to find resource \"%s\" with \"%s\"", resource.key, tostring(resource.value)))
-						end
-					end
-				end
-			end
-		end
-	},
-	{system_key = "core_init_palette", target_key = "core_resource_registration", target_relation = "After", system =
+	{system_key = "core_init_palette", target_key = "resources_loaded", target_relation = "After", system =
 		function(ctx)
 			ctx.res:get("pal", "core_main"):poke(0x5000)
 		end
 	},
-	{system_key = "core_init_font", target_key = "core_resource_registration", target_relation = "After", system =
+	{system_key = "core_init_font", target_key = "resources_loaded", target_relation = "After", system =
 		function(ctx)
 			ctx.res:get("font", "core_charcoal"):poke(0x4000)
 		end
 	},
-	{system_key = "core_init_ui", target_key = "core_resource_registration", target_relation = "After", system =
+	{system_key = "core_init_ui", target_key = "resources_loaded", target_relation = "After", system =
 		function (ctx)
 			local ui_config = ctx.res:get("config", "core_ui_map")
 			
@@ -83,7 +68,7 @@ local hooks = {
 			ctx.ui.tooltip = new_tooltip()
 		end
 	},
-	{system_key = "core_init_map", target_key = "core_resource_registration", target_relation = "After", system =
+	{system_key = "core_init_map", target_key = "resources_loaded", target_relation = "After", system =
 		function(ctx)
 			local map_data = ctx.res:get("map", "core_test")
 			local bg_map_bmp = map_data[4].bmp
@@ -113,7 +98,7 @@ local hooks = {
 			end
 		end
 	},
-	{system_key = "core_init_entity_map", target_key = "core_resource_registration", target_relation = "After", system = 
+	{system_key = "core_init_entity_map", target_key = "resources_loaded", target_relation = "After", system = 
 		function(ctx)
 			local ui_config = ctx.res:get("config", "core_ui_map")
 			
@@ -123,7 +108,7 @@ local hooks = {
 			ctx.entity_map = Entities.new_map(ui_config.map_width)
 		end
 	},
-	{system_key = "core_init_test_entities", target_key = "core_resource_registration", target_relation = "After", system = 
+	{system_key = "core_init_test_entities", target_key = "resources_loaded", target_relation = "After", system = 
 		function(ctx)
 			local ui_config = ctx.res:get("config", "core_ui_map")
 			local color_over_coltab = ctx.res:get("coltab", "core_color_over")

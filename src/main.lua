@@ -31,7 +31,8 @@ local function new_context(mods)
 	---@field init_systems fun(ctx: Context)[]
 	---@field update_systems fun(ctx: Context)[]
 	---@field draw_systems fun(ctx: Context)[]
-	local system_reg = new_system_registry({"init", "update", "draw"})
+	---@field resources_loaded_systems fun(ctx: Context)[]
+	local system_reg = new_system_registry({"init", "resources_loaded", "update", "draw"})
 	local res = new_resource_registry()
 	
 	for _, mod in ipairs(mods) do
@@ -101,6 +102,22 @@ function _init()
 	ctx = new_context(mods)
 	
 	for _, system in ipairs(ctx.system_reg.init_systems) do
+		system(ctx)
+	end
+	
+	for _, mod in ipairs(ctx.mods) do
+		if mod.resources then
+			for _, resource in ipairs(mod.resources) do
+				if ctx.res:register(ctx, resource) then
+					printh("Registered resource: " .. resource.key)
+				else
+					printh(fmt("Failed to find resource \"%s\" with \"%s\"", resource.key, tostring(resource.value)))
+				end
+			end
+		end
+	end
+	
+	for _, system in ipairs(ctx.system_reg.resources_loaded_systems) do
 		system(ctx)
 	end
 end
