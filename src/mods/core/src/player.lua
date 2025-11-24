@@ -35,7 +35,7 @@ end
 ---@param tile_size integer
 ---@return Player
 local function new(res, entity_map, pos, color_over_coltab, tile_size)
-	local sprite = res:get"core_sprite_anthro_canine"
+	local sprite = res:get("sprite", "core_anthro_canine")
 	---@class Player
 	local player = {
 		display_pos = pos * tile_size,

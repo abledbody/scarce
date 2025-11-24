@@ -25,24 +25,27 @@ function m_resource_registry:register(ctx, resource)
 	if res == nil then return false end
 	
 	local kind = self.kinds[resource.kind]
-	if not kind then kind = {} self.kinds[resource.kind] = kind end
-	insert(kind, res)
-
-	self.resources[resource.key] = res
+	if not kind then
+		kind = {}
+		self.kinds[resource.kind] = kind
+	end
+	
+	kind[resource.key] = res
 	return true
 end
 
+---@param kind_key string
 ---@param key string
 ---@return any
-function m_resource_registry:get(key)
-	return self.resources[key]
+function m_resource_registry:get(kind_key, key)
+	local kind = self.kinds[kind_key]
+	return kind and kind[key]
 end
 
 ---@return ResourceRegistry
 return function()
 	---@class ResourceRegistry
 	local reg = {
-		resources = {},
 		kinds = {},
 		registrators = {},
 	}

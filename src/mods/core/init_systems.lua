@@ -39,17 +39,17 @@ local hooks = {
 	},
 	{system_key = "core_init_palette", target_key = "core_resource_registration", target_relation = "After", system =
 		function(ctx)
-			ctx.res:get"core_palette":poke(0x5000)
+			ctx.res:get("pal", "core_main"):poke(0x5000)
 		end
 	},
 	{system_key = "core_init_font", target_key = "core_resource_registration", target_relation = "After", system =
 		function(ctx)
-			ctx.res:get"core_font_charcoal":poke(0x4000)
+			ctx.res:get("font", "core_charcoal"):poke(0x4000)
 		end
 	},
 	{system_key = "core_init_ui", target_key = "core_resource_registration", target_relation = "After", system =
 		function (ctx)
-			local ui_config = ctx.res:get"core_ui_config_map"
+			local ui_config = ctx.res:get("config", "core_ui_map")
 			
 			---@class Context
 			---@field ui UIData
@@ -85,12 +85,12 @@ local hooks = {
 	},
 	{system_key = "core_init_map", target_key = "core_resource_registration", target_relation = "After", system =
 		function(ctx)
-			local map_data = ctx.res:get"core_map_test"
+			local map_data = ctx.res:get("map", "core_test")
 			local bg_map_bmp = map_data[4].bmp
 			local bg_map_cols = map_data[3].bmp
 			local fg_map_bmp = map_data[2].bmp
 			local fg_map_cols = map_data[1].bmp
-			local color_over_coltab = ctx.res:get"core_coltab_color_over"
+			local color_over_coltab = ctx.res:get("coltab", "core_color_over")
 			
 			ctx.ui.draw_map = function()
 				-- Draw the foreground with mask 1
@@ -115,7 +115,7 @@ local hooks = {
 	},
 	{system_key = "core_init_entity_map", target_key = "core_resource_registration", target_relation = "After", system = 
 		function(ctx)
-			local ui_config = ctx.res:get"core_ui_config_map"
+			local ui_config = ctx.res:get("config", "core_ui_map")
 			
 			---@class Context
 			---@field entity_map EntityMap
@@ -125,15 +125,15 @@ local hooks = {
 	},
 	{system_key = "core_init_test_entities", target_key = "core_resource_registration", target_relation = "After", system = 
 		function(ctx)
-			local ui_config = ctx.res:get"core_ui_config_map"
-			local color_over_coltab = ctx.res:get"core_coltab_color_over"
+			local ui_config = ctx.res:get("config", "core_ui_map")
+			local color_over_coltab = ctx.res:get("coltab", "core_color_over")
 			
 			---@class Context
 			---@field player Player
 			
 			ctx.entity_map:new(
 				vec(5,5),
-				ctx.res:get"core_sprite_drawstring_bag",
+				ctx.res:get("sprite", "core_drawstring_bag"),
 				25,
 				"T-shirt\n\fmA comfy shirt to wear.\n\fnFlammable\n\fnWearable\n\fcCloth"
 			)

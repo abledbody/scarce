@@ -29,9 +29,15 @@ local function reg_coltab(_, value)
     return gfx[i].bmp
 end
 
+---@param value string
+---@return table
+local function reg_config(_, value)
+    return include(value)
+end
+
 ---@type ResourceRegistrator[]
 local registrators = {
-    {kind = "generic", func = verbatim},
+    {kind = "config", func = reg_config},
     {kind = "pal", func = verbatim},
     {kind = "font", func = verbatim},
     {kind = "map", func = verbatim},

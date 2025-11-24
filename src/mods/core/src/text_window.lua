@@ -9,7 +9,7 @@ m_text_window.__index = m_text_window
 
 ---@param res ResourceRegistry
 function m_text_window:draw(res)
-	local colors = res:get"core_colors_ui"
+	local colors = res:get("config", "core_ui_colors")
 	UI.draw_with_border(
 		function()
 			if self.buffer_dirty then
@@ -18,7 +18,7 @@ function m_text_window:draw(res)
 			end
 			blit(self.buffer, nil, nil, nil, self.pos.x, self.pos.y)
 			if self.line_i != #self.lines then
-				local sprite = get_spr(res:get"core_sprite_ui_text_detached")
+				local sprite = get_spr(res:get("sprite", "core_ui_text_detached"))
 				spr(
 					sprite,
 					self.size.x - sprite:width() - 1,

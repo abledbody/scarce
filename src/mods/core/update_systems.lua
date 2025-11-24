@@ -10,14 +10,14 @@ local hooks = {
 	},
 	{system_key = "core_update_player", target_key = "update", target_relation = "After", system = 
 		function(ctx)
-			local ui_config = ctx.res:get("core_ui_config_map")
+			local ui_config = ctx.res:get("config", "core_ui_map")
 			ctx.player:interpret_inputs(ctx.entity_map)
 			ctx.player:animate(ui_config.tile_size)
 		end
 	},
 	{system_key = "core_update_tooltip", target_key = "update", target_relation = "After", system = 
 		function(ctx)
-			local ui_config = ctx.res:get"core_ui_config_map"
+			local ui_config = ctx.res:get("config", "core_ui_map")
 			local mouse_pos = Mouse.position()
 			local mouse_map_coords =
 				(ctx.ui.viewport:screen_to_viewport(mouse_pos) + ctx.camera_pos - 1) // ui_config.tile_size
@@ -31,7 +31,7 @@ local hooks = {
 	},
 	{system_key = "core_update_camera", target_key = "update", target_relation = "After", system = 
 		function(ctx)
-			local ui_config = ctx.res:get"core_ui_config_map"
+			local ui_config = ctx.res:get("config", "core_ui_map")
 			local last_cam_pos = ctx.camera_pos:copy()
 	
 			ctx.camera_pos = Math.lerp(
