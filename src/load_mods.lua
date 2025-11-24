@@ -9,10 +9,12 @@ local fmt = string.format
 
 return function()
 	-- Mod order is a list of the names of mods in the order they should be loaded and executed.
-	local mod_order = fetch"/appdata/scarce/mod_order.pod"
-	if not mod_order then
+	mkdir("/appdata/scarce")
+	local mod_order = unpod(fetch"/appdata/scarce/mod_order.txt")
+	if type(mod_order) != "table" then
 		mod_order = {"core"}
-		store("/appdata/scarce/mod_order.pod", mod_order)
+		---@diagnostic disable-next-line param-type-mismatch
+		store("/appdata/scarce/mod_order.txt", pod(mod_order, 0))
 	end
 	
 	local mods = {}
