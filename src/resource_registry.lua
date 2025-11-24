@@ -8,10 +8,6 @@ m_resource_registry.__index = m_resource_registry
 ---@field kind string
 ---@field func fun(ctx: Context, value: any): any
 
----@class Resource
----@field kind string
----@field key string
----@field value boolean|number|userdata|table|function|string
 
 ---@param registrator ResourceRegistrator
 function m_resource_registry:define(registrator)
@@ -43,7 +39,7 @@ function m_resource_registry:get(kind_key, key)
 end
 
 ---@return ResourceRegistry
-return function()
+local function new()
 	---@class ResourceRegistry
 	local reg = {
 		kinds = {},
@@ -52,3 +48,22 @@ return function()
 	
 	return setmetatable(reg, m_resource_registry)
 end
+
+---@param kind string
+---@param key string
+---@param value boolean|number|userdata|table|function|string
+local function new_resource(kind, key, value)
+	---@class Resource
+	local resource = {
+		kind = kind,
+		key = key,
+		value = value,
+	}
+	
+	return resource
+end
+
+return {
+	new = new,
+	new_resource = new_resource,
+}

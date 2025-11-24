@@ -1,4 +1,4 @@
-local fmt = string.format
+local SystemRegistry = require_ext"src/system_registry"
 local UI = require"core/src/ui"
 local new_graphics_data = require"core/src/graphics"
 local new_bg_viewport = require"core/src/bg_viewport"
@@ -8,9 +8,11 @@ local Entities = require"core/src/entities"
 local new_tooltip = require"core/src/tooltip"
 local new_player = require"core/src/player"
 
+local hook = SystemRegistry.new_hook
+
 ---@type Hook[]
 local hooks = {
-	{system_key = "core_init", target_key = "init", target_relation = "After", system = 
+	hook("core_init", "After", "init", 
 		function(ctx)
 			window()
 			
@@ -21,18 +23,21 @@ local hooks = {
 			ctx.graphics = new_graphics_data()
 			ctx.camera_pos = vec(0, 0)
 		end
-	},
-	{system_key = "core_init_palette", target_key = "resources_loaded", target_relation = "After", system =
+	),
+	
+	hook("core_init_palette", "After", "resources_loaded", 
 		function(ctx)
 			ctx.res:get("pal", "core_main"):poke(0x5000)
 		end
-	},
-	{system_key = "core_init_font", target_key = "resources_loaded", target_relation = "After", system =
+	),
+	
+	hook("core_init_font", "After", "resources_loaded", 
 		function(ctx)
 			ctx.res:get("font", "core_charcoal"):poke(0x4000)
 		end
-	},
-	{system_key = "core_init_ui", target_key = "resources_loaded", target_relation = "After", system =
+	),
+	
+	hook("core_init_ui", "After", "resources_loaded", 
 		function (ctx)
 			local ui_config = ctx.res:get("config", "core_ui_map")
 			
@@ -67,8 +72,9 @@ local hooks = {
 			
 			ctx.ui.tooltip = new_tooltip()
 		end
-	},
-	{system_key = "core_init_map", target_key = "resources_loaded", target_relation = "After", system =
+	),
+	
+	hook("core_init_map", "After", "resources_loaded", 
 		function(ctx)
 			local map_data = ctx.res:get("map", "core_test")
 			local bg_map_bmp = map_data[4].bmp
@@ -97,8 +103,9 @@ local hooks = {
 				poke(0x550a, 0x3f)
 			end
 		end
-	},
-	{system_key = "core_init_entity_map", target_key = "resources_loaded", target_relation = "After", system = 
+	),
+	
+	hook("core_init_entity_map", "After", "resources_loaded", 
 		function(ctx)
 			local ui_config = ctx.res:get("config", "core_ui_map")
 			
@@ -107,8 +114,9 @@ local hooks = {
 			
 			ctx.entity_map = Entities.new_map(ui_config.map_width)
 		end
-	},
-	{system_key = "core_init_test_entities", target_key = "resources_loaded", target_relation = "After", system = 
+	),
+	
+	hook("core_init_test_entities", "After", "resources_loaded", 
 		function(ctx)
 			local ui_config = ctx.res:get("config", "core_ui_map")
 			local color_over_coltab = ctx.res:get("coltab", "core_color_over")
@@ -124,7 +132,7 @@ local hooks = {
 			)
 			ctx.player = new_player(ctx.res, ctx.entity_map, vec(10, 10), color_over_coltab, ui_config.tile_size)
 		end
-	},
+	),
 }
 
 return hooks

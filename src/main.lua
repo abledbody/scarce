@@ -2,15 +2,15 @@ include"src/require.lua"
 
 -------------------------------------Dependencies--------------------------------------
 
-local new_system_registry = require"src/system_registry"
-local new_resource_registry = require"src/resource_registry"
+local SystemRegistry = require"src/system_registry"
+local ResourceRegistry = require"src/resource_registry"
 local load_mods = require"src/load_mods"
 local fmt = string.format
 local insert = table.insert
 
 ----------------------------------------Globals----------------------------------------
 
-WORKP = fullpath("")
+WORKP = pwd()
 ---@diagnostic disable-next-line: lowercase-global
 function require_ext(path)
 	local current_wd = pwd()
@@ -32,8 +32,8 @@ local function new_context(mods)
 	---@field update_systems fun(ctx: Context)[]
 	---@field draw_systems fun(ctx: Context)[]
 	---@field resources_loaded_systems fun(ctx: Context)[]
-	local system_reg = new_system_registry({"init", "resources_loaded", "update", "draw"})
-	local res = new_resource_registry()
+	local system_reg = SystemRegistry.new({"init", "resources_loaded", "update", "draw"})
+	local res = ResourceRegistry.new()
 	
 	for _, mod in ipairs(mods) do
 		if mod.system_hooks then

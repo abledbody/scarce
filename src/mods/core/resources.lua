@@ -1,26 +1,28 @@
+local ResourceRegistry = require_ext("src/resource_registry")
 local tile_resources = require"core/tile_resources"
 local insert = table.insert
+local res = ResourceRegistry.new_resource
 
 ---@type Resource[]
 local resources = {
-    {kind = "pal", key = "core_main", value = "core/pal/core.pal"},
-    {kind = "font", key = "core_charcoal", value = "core/font/charcoal.font"},
+    res("pal", "core_main", "core/pal/core.pal"),
+    res("font", "core_charcoal", "core/font/charcoal.font"),
     
-    {kind = "coltab", key = "core_color_over", value = {file = "core/gfx/coltabs.gfx", i = 0}},
+    res("coltab", "core_color_over", {file = "core/gfx/coltabs.gfx", i = 0}),
     
-    {kind = "map", key = "core_test", value = "core/map/0.map"},
+    res("map", "core_test", "core/map/0.map"),
     
-    {kind = "config", key = "core_ui_colors", value = "core/configs/colors.lua"},
-    {kind = "config", key = "core_ui_map", value = "core/configs/map.lua"},
+    res("config", "core_ui_colors", "core/configs/colors.lua"),
+    res("config", "core_ui_map", "core/configs/map.lua"),
     
-	{kind = "sprite", key = "core_anthro_canine", value = {file = "core/gfx/things.gfx", i = 0}},
-	{kind = "sprite", key = "core_anthro_draconic", value = {file = "core/gfx/things.gfx", i = 1}},
+	res("sprite", "core_anthro_canine", {file = "core/gfx/things.gfx", i = 0}),
+	res("sprite", "core_anthro_draconic", {file = "core/gfx/things.gfx", i = 1}),
     
-	{kind = "sprite", key = "core_bush", value = {file = "core/gfx/things.gfx", i = 64}},
+	res("sprite", "core_bush", {file = "core/gfx/things.gfx", i = 64}),
     
-	{kind = "sprite", key = "core_drawstring_bag", value = {file = "core/gfx/things.gfx", i = 128}},
+	res("sprite", "core_drawstring_bag", {file = "core/gfx/things.gfx", i = 128}),
     
-	{kind = "sprite", key = "core_ui_text_detached", value = {file = "core/gfx/ui.gfx", i = 0}},
+	res("sprite", "core_ui_text_detached", {file = "core/gfx/ui.gfx", i = 0}),
 }
 
 for _, resource in ipairs(tile_resources) do

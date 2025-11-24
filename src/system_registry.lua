@@ -6,11 +6,6 @@ local new_index_map = require"src/index_map"
 local default_ctor = require"src/utils".default_ctor
 local new_multi_bimap = require"src/multi_bimap"
 
----@class Hook
----@field target_relation "Before"|"After"
----@field target_key string
----@field system_key string
----@field system fun(ctx: Context)
 
 ---@class SystemRegistry
 local m_system_registry = {}
@@ -266,7 +261,7 @@ function m_system_registry:sanitize_hooks()
 end
 
 ---@param root_keys string[]
-return function(root_keys)
+local function new(root_keys)
 	---@class SystemRegistry
 	local registry = {
 		root_keys = root_keys,
@@ -274,3 +269,25 @@ return function(root_keys)
 	}
 	return setmetatable(registry, m_system_registry)
 end
+
+---@param key string
+---@param target_relation "Before"|"After"
+---@param target_key string
+---@param system fun(ctx: Context)
+---@return Hook
+local function new_hook(key, target_relation, target_key, system)
+	---@class Hook
+	local hook = {
+		system_key = key,
+		target_key = target_key,
+		target_relation = target_relation,
+		system = system
+	}
+	
+	return hook
+end
+
+return {
+	new = new,
+	new_hook = new_hook,
+}

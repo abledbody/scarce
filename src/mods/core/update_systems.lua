@@ -1,21 +1,25 @@
 local Mouse = require"core/src/mouse"
 local Math = require"core/src/math"
+local SystemRegistry = require_ext"src/system_registry"
+local hook = SystemRegistry.new_hook
 
 ---@type Hook[]
 local hooks = {
-	{system_key = "core_update_mouse", target_key = "update", target_relation = "After", system = 
+	hook("core_update_mouse", "After", "update",
 		function()
 			Mouse.frame_start()
 		end
-	},
-	{system_key = "core_update_player", target_key = "update", target_relation = "After", system = 
+	),
+	
+	hook("core_update_player", "After", "update", 
 		function(ctx)
 			local ui_config = ctx.res:get("config", "core_ui_map")
 			ctx.player:interpret_inputs(ctx.entity_map)
 			ctx.player:animate(ui_config.tile_size)
 		end
-	},
-	{system_key = "core_update_tooltip", target_key = "update", target_relation = "After", system = 
+	),
+	
+	hook("core_update_tooltip", "After", "update", 
 		function(ctx)
 			local ui_config = ctx.res:get("config", "core_ui_map")
 			local mouse_pos = Mouse.position()
@@ -28,8 +32,9 @@ local hooks = {
 			ctx.ui.tooltip:set_text(entity and entity[1] and entity[1].tooltip)
 			ctx.ui.tooltip:set_pos(mouse_pos)
 		end
-	},
-	{system_key = "core_update_camera", target_key = "update", target_relation = "After", system = 
+	),
+	
+	hook("core_update_camera", "After", "update", 
 		function(ctx)
 			local ui_config = ctx.res:get("config", "core_ui_map")
 			local last_cam_pos = ctx.camera_pos:copy()
@@ -42,13 +47,15 @@ local hooks = {
 			
 			ctx.ui.viewport.bg:move_view(ctx.camera_pos, last_cam_pos)
 		end
-	},
-	{system_key = "core_update_scroll_text", target_key = "update", target_relation = "After", system = 
+	),
+	
+	hook("core_update_scroll_text", "After", "update", 
 		function(ctx)
 			ctx.ui.text_window:scroll(Mouse.scroll_delta().y * -5)
 		end
-	},
-	{system_key = "core_update_debug_populate_text", target_key = "update", target_relation = "After", system = 
+	),
+	
+	hook("core_update_debug_populate_text", "After", "update", 
 		function(ctx)
 			if btnp(4) then
 				local foo = ""
@@ -65,7 +72,7 @@ local hooks = {
 				ctx.ui.text_window:push(foo .. "?")
 			end
 		end
-	},
+	),
 }
 
 return hooks
