@@ -163,12 +163,13 @@ function m_system_registry:build_order()
 		end
 		
 		local parent_index = tree.indices[system_key]
-		for i = 1, #before_child_hooks do
-			tree:insert(before_child_hooks[i].system_key, parent_index + i - 1)
-		end
-		
+		-- After nodes must come first, because they will not change the parent_index.
 		for i = #after_child_hooks, 1, -1 do
 			tree:insert(after_child_hooks[i].system_key, parent_index + 1)
+		end
+		
+		for i = 1, #before_child_hooks do
+			tree:insert(before_child_hooks[i].system_key, parent_index + i - 1)
 		end
 		
 		for _, k in ipairs(children.keys) do
