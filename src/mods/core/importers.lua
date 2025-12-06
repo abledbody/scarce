@@ -1,6 +1,6 @@
 ---@param value string
 ---@return any
-local function verbatim(_, value)
+local function reg_pod(_, value)
     return fetch(value)
 end
 
@@ -19,7 +19,7 @@ end
 
 ---@param value {file: string, i: integer}
 ---@return userdata?
-local function reg_coltab(_, value)
+local function reg_sprite_ud(_, value)
     local file, i = value.file, value.i
     if i >= 256 then return end
     
@@ -29,20 +29,27 @@ local function reg_coltab(_, value)
     return gfx[i].bmp
 end
 
+---@param ctx Context
+---@param value userdata
+---@return integer
+local function reg_proc_sprite(ctx, value)
+    return ctx.graphics:add_sprite_raw(value)
+end
+
 ---@param value string
 ---@return table
 local function reg_config(_, value)
     return include(value)
 end
 
----@type ResourceRegistrator[]
+---@type Importer[]
 local registrators = {
-    {kind = "config", func = reg_config},
-    {kind = "pal", func = verbatim},
-    {kind = "font", func = verbatim},
-    {kind = "map", func = verbatim},
-    {kind = "sprite", func = reg_sprite},
-    {kind = "coltab", func = reg_coltab},
+    {key = "data", func = function(_, v) return v end},
+    {key = "pod", func = reg_pod},
+    {key = "config", func = reg_config},
+    {key = "sprite", func = reg_sprite},
+    {key = "sprite_ud", func = reg_sprite_ud},
+    {key = "proc_sprite", func = reg_proc_sprite},
 }
 
 return registrators

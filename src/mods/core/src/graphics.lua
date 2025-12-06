@@ -14,9 +14,17 @@ function m_graphics_data:add_sprite(sprite)
 	local i = self.sprite_i
 	
 	set_spr(i, sprite.bmp)
-	assert(sprite.bmp)
 	fset(i, sprite.flags)
 	
+	self.sprite_i += 1
+	return i
+end
+
+---@param sprite userdata
+---@return integer
+function m_graphics_data:add_sprite_raw(sprite)
+	local i = self.sprite_i
+	set_spr(i, sprite)
 	self.sprite_i += 1
 	return i
 end

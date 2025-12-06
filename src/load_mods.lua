@@ -4,7 +4,7 @@ local fmt = string.format
 ---@class Mod
 ---@field system_hooks Hook[]?
 ---@field resources Resource[]?
----@field res_registrators ResourceRegistrator[]?
+---@field importers Importer[]?
 ---@field dir string?
 
 return function()

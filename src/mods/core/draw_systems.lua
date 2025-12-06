@@ -8,13 +8,13 @@ local hooks = {
 	{system_key = "core_draw_viewport", target_key = "core_draw_clear", target_relation = "After", system = 
 		function(ctx)
 			local ui_cols = ctx.res:get("config", "core_ui_colors")
-			local ui_config = ctx.res:get("config", "core_ui_map")
+			local map_config = ctx.res:get("config", "core_map")
 			local color_over = ctx.res:get("coltab", "core_color_over")
 			ctx.ui.viewport:draw(ctx.camera_pos, ui_cols)
 			local viewport_translate = ctx.ui.viewport:screen_to_viewport(ctx.camera_pos)
 			camera(viewport_translate.x, viewport_translate.y)
 			ctx.ui.viewport:clip()
-			ctx.entity_map:draw(color_over, ui_config.tile_size)
+			ctx.entity_map:draw(color_over, map_config.tile_size)
 			clip()
 			camera()
 		end

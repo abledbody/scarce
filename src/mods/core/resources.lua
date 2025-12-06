@@ -5,28 +5,33 @@ local res = ResourceRegistry.new_resource
 
 ---@type Resource[]
 local resources = {
-    res("pal", "core_main", "core/pal/core.pal"),
-    res("font", "core_charcoal", "core/font/charcoal.font"),
+    res("pod", "pal", "core_main", "core/pal/core.pal"),
+    res("pod", "font", "core_charcoal", "core/font/charcoal.font"),
     
-    res("coltab", "core_color_over", {file = "core/gfx/coltabs.gfx", i = 0}),
+    res("sprite_ud", "coltab", "core_color_over", {file = "core/gfx/coltabs.gfx", i = 0}),
     
-    res("map", "core_test", "core/map/0.map"),
+    res("pod", "map", "core_test", "core/map/0.map"),
     
-    res("config", "core_ui_colors", "core/configs/colors.lua"),
-    res("config", "core_ui_map", "core/configs/map.lua"),
+    res("config", "config", "core_ui_colors", "core/configs/colors.lua"),
+    res("config", "config", "core_viewport", "core/configs/viewport.lua"),
+    res("config", "config", "core_map", "core/configs/map.lua"),
     
-	res("sprite", "core_anthro_canine", {file = "core/gfx/things.gfx", i = 0}),
-	res("sprite", "core_anthro_draconic", {file = "core/gfx/things.gfx", i = 1}),
+	res("sprite", "sprite", "core_anthro_canine", {file = "core/gfx/things.gfx", i = 0}),
+	res("sprite", "sprite", "core_anthro_draconic", {file = "core/gfx/things.gfx", i = 1}),
     
-	res("sprite", "core_bush", {file = "core/gfx/things.gfx", i = 64}),
+	res("sprite", "sprite", "core_bush", {file = "core/gfx/things.gfx", i = 64}),
     
-	res("sprite", "core_drawstring_bag", {file = "core/gfx/things.gfx", i = 128}),
+	res("sprite", "sprite", "core_drawstring_bag", {file = "core/gfx/things.gfx", i = 128}),
     
-	res("sprite", "core_ui_text_detached", {file = "core/gfx/ui.gfx", i = 0}),
+	res("sprite", "sprite", "core_ui_text_detached", {file = "core/gfx/ui.gfx", i = 0}),
 }
 
 for _, resource in ipairs(tile_resources) do
     insert(resources, resource)
+end
+
+for i = 0, 63 do
+    insert(resources, res("proc_sprite", "sprite", "core_color_" .. i, userdata("u8",1,1):copy(i, true)))
 end
 
 return resources

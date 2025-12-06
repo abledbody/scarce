@@ -13,18 +13,18 @@ local hooks = {
 	
 	hook("core_update_player", "After", "update", 
 		function(ctx)
-			local ui_config = ctx.res:get("config", "core_ui_map")
+			local map_config = ctx.res:get("config", "core_map")
 			ctx.player:interpret_inputs(ctx.entity_map)
-			ctx.player:animate(ui_config.tile_size)
+			ctx.player:animate(map_config.tile_size)
 		end
 	),
 	
 	hook("core_update_tooltip", "After", "update", 
 		function(ctx)
-			local ui_config = ctx.res:get("config", "core_ui_map")
+			local map_config = ctx.res:get("config", "core_map")
 			local mouse_pos = Mouse.position()
 			local mouse_map_coords =
-				(ctx.ui.viewport:screen_to_viewport(mouse_pos) + ctx.camera_pos - 1) // ui_config.tile_size
+				(ctx.ui.viewport:screen_to_viewport(mouse_pos) + ctx.camera_pos - 1) // map_config.tile_size
 				
 			local entity = ctx.ui.viewport:point_inside(mouse_pos)
 				and ctx.entity_map:get(mouse_map_coords) or nil
@@ -36,12 +36,12 @@ local hooks = {
 	
 	hook("core_update_camera", "After", "update", 
 		function(ctx)
-			local ui_config = ctx.res:get("config", "core_ui_map")
+			local map_config = ctx.res:get("config", "core_map")
 			local last_cam_pos = ctx.camera_pos:copy()
 	
 			ctx.camera_pos = Math.lerp(
 				ctx.camera_pos,
-				(ctx.player.entity.pos + 0.5) * ui_config.tile_size - ctx.ui.viewport.bg.size * 0.5 + 0.5,
+				(ctx.player.entity.pos + 0.5) * map_config.tile_size - ctx.ui.viewport.bg.size * 0.5 + 0.5,
 				0.2
 			)
 			

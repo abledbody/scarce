@@ -22,16 +22,14 @@ end
 
 --------------------------------------Game State---------------------------------------
 
-local ctx --- @type Context
-
 ---@param mods Mod[]
 ---@return Context
 local function new_context(mods)
-	---@class SystemRegistry
+	---@class MainSystemRegistry : SystemRegistry
 	---@field init_systems fun(ctx: Context)[]
+	---@field resources_loaded_systems fun(ctx: Context)[]
 	---@field update_systems fun(ctx: Context)[]
 	---@field draw_systems fun(ctx: Context)[]
-	---@field resources_loaded_systems fun(ctx: Context)[]
 	local system_reg = SystemRegistry.new({"init", "resources_loaded", "update", "draw"})
 	local res = ResourceRegistry.new()
 	
@@ -41,9 +39,9 @@ local function new_context(mods)
 				system_reg:register(hook)
 			end
 		end
-		if mod.res_registrators then
-			for _, registrator in ipairs(mod.res_registrators) do
-				res:define(registrator)
+		if mod.importers then
+			for _, registrator in ipairs(mod.importers) do
+				res:register_importer(registrator)
 			end
 		end
 	end

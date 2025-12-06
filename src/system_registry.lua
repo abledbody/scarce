@@ -214,6 +214,9 @@ end
 ---@param hook Hook
 ---@return string? error_message
 local function validate_hook(hook)
+	local hook_type = type(hook)
+	if hook_type != "table" then return fmt("Invalid hook type: %s", hook_type) end
+	
 	local system_key_type = type(hook.system_key)
 	local target_key_type = type(hook.target_key)
 	local system_type = type(hook.system)

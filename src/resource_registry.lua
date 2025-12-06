@@ -4,20 +4,20 @@ local insert = table.insert
 local m_resource_registry = {}
 m_resource_registry.__index = m_resource_registry
 
----@class ResourceRegistrator
----@field kind string
+---@class Importer
+---@field key string
 ---@field func fun(ctx: Context, value: any): any
 
 
----@param registrator ResourceRegistrator
-function m_resource_registry:define(registrator)
-	self.registrators[registrator.kind] = registrator.func
+---@param importer Importer
+function m_resource_registry:register_importer(importer)
+	self.importers[importer.key] = importer.func
 end
 
 ---@param ctx Context
 ---@param resource Resource
 function m_resource_registry:register(ctx, resource)
-	local res = self.registrators[resource.kind](ctx, resource.value)
+	local res = self.importers[resource.importer](ctx, resource.value)
 	if res == nil then return false end
 	
 	local kind = self.kinds[resource.kind]
@@ -42,19 +42,21 @@ end
 local function new()
 	---@class ResourceRegistry
 	local reg = {
+		importers = {},
 		kinds = {},
-		registrators = {},
 	}
 	
 	return setmetatable(reg, m_resource_registry)
 end
 
+---@param importer string
 ---@param kind string
 ---@param key string
 ---@param value boolean|number|userdata|table|function|string
-local function new_resource(kind, key, value)
+local function new_resource(importer, kind, key, value)
 	---@class Resource
 	local resource = {
+		importer = importer,
 		kind = kind,
 		key = key,
 		value = value,
