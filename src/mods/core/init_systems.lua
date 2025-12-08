@@ -91,8 +91,17 @@ local hooks = {
 		function(ctx)
 			local map_config = ctx.res:get("config", "core_map")
 			local map_data = ctx.map_gen:generate(ctx.res, {
+				seed = math.random(2^53),
 				size = map_config.size,
-				fill_tile = ctx.res:get("tile", "core_grass_green")
+				basis_tile = ctx.res:get("tile", "core_grass_green"),
+				
+				ocean_size = 12,
+				ocean_threshold = 0.55,
+				
+				desert_size = 6,
+				desert_threshold = 1.7,
+				
+				beach_factor = 2.5,
 			})
 			
 			---@class Context

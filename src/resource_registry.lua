@@ -1,4 +1,5 @@
 local insert = table.insert
+local fmt = string.format
 
 ---@class ResourceRegistry
 local m_resource_registry = {}
@@ -35,7 +36,11 @@ end
 ---@return any
 function m_resource_registry:get(kind_key, key)
 	local kind = self.kinds[kind_key]
-	return kind and kind[key]
+	local value = kind and kind[key]
+	if not value then
+		error(fmt("Failed to fetch resource \"%s\" of kind \"%s\"", key, kind_key))
+	end
+	return value
 end
 
 ---@return ResourceRegistry
