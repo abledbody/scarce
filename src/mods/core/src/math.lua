@@ -33,11 +33,9 @@ local function perlin(width, height, scale, seed)
 	pos_x:add(pos_x, true, 1, 2, 1, 1, 1, width - 2)
 		:copy(pos_x, true, 0, width, width, width, width, height - 1)
 	
-	local pos_y = userdata("f64", height, width)
-		:copy(1, true, 0, 1, 1, 0, 1, height - 1)
-	pos_y:add(pos_y, true, 1, 2, 1, 1, 1, height - 2)
-		:copy(pos_y, true, 0, height, height, height, height, width - 1)
-	pos_y:transpose(true)
+	local pos_y = userdata("f64", width, height)
+		:copy(1, true, 0, width, width * height)
+	pos_y:add(pos_y, true, width, width * 2, width, width, width, height - 2)
 	
 	-- Determine the grid square of the gradient vectors that each sample lives in
 	local parent_vec_x = pos_x:div(scale)
