@@ -192,15 +192,7 @@ function m_entities:query(...)
 				valid = comps[component_keys[by_frequency:get(1, i)]]
 				if not valid then break end
 			end
-			if valid then
-				if not entity then
-					self.iterating -= 1
-					if self.iterating == 0 then
-						self:flush_changes()
-					end
-				end
-				return entity
-			end
+			if valid then return entity end
 		end
 		
 		self.iterating -= 1

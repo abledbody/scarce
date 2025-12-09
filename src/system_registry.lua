@@ -132,7 +132,7 @@ function m_system_registry:build_order()
 	local valid_trees = {}
 	local orphans = {}
 	
-	-- Breadth-first index_map population of system order to be saved into self
+	-- index_map population of system order to be saved into self
 	-- All roots which don't match get shoved into orphans.
 
 	for comp_id, tree in ipairs(components.key2set) do
@@ -234,7 +234,7 @@ local function validate_hook(hook)
 		msg = fmt("Invalid system key type %s. Must be a string.", system_key_type)
 	end
 	if wrong_target_key_type then
-		msg = (msg and msg .. "\n" or "") .. fmt("Invalid system key target key type %s. Must be a string.", system_type)
+		msg = (msg and msg .. "\n" or "") .. fmt("Invalid target key type %s. Must be a string.", target_key_type)
 	end
 	if wrong_system_type then
 		msg = (msg and msg .. "\n" or "") .. fmt("Invalid system type %s. Must be a function which takes a context parameter.", system_type)

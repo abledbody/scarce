@@ -46,7 +46,7 @@ local function spawn_walkers(ctx)
 	local tile_size = map_config.tile_size
 	
 	for _ = 1, 300 do
-		local pos = vec(rnd() * map_w, rnd() * map_h) // 1
+		local pos = vec(rnd(map_w), rnd(map_h)) // 1
 		local sprite_name = rnd{"core_anthro_draconic", "core_anthro_canine"}
 		
 		ctx.entity_map:add(
