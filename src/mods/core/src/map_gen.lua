@@ -1,5 +1,5 @@
 local SystemRegistry = require_ext"src/system_registry"
-local Entities = require"core/src/entities"
+local Things = require"core/src/things"
 local Math = require"core/src/math"
 local random = math.random
 local randomseed = math.randomseed
@@ -83,8 +83,9 @@ end
 ---@param ctx MapGenerationContext
 local function init_map(ctx)
 	---@class MapGenerationContext
+	---@field game_ctx Context
 	---@field map Map
-	---@field entities EntityMap
+	---@field entity_map EntityMap
 	---@field seed integer
 	
 	local size = ctx.params.size
@@ -97,7 +98,7 @@ local function init_map(ctx)
 		[4] = {bmp = userdata("i16", size.x, size.y)},
 	}
 	
-	ctx.entities = Entities.new_map(size.x)
+	ctx.entity_map = Things.new_map(size)
 	randomseed(ctx.params.seed)
 end
 
@@ -114,10 +115,10 @@ end
 local m_map_gen = {}
 m_map_gen.__index = m_map_gen
 
----@param res ResourceRegistry
+---@param game_ctx Context
 ---@param params table
----@return Map
-function m_map_gen:generate(res, params)
+---@return MapGenerationContext
+function m_map_gen:generate(game_ctx, params)
 	local _, _, errs = self.sys_reg:build_order()
 	if errs then
 		error(errs[1])
@@ -125,7 +126,8 @@ function m_map_gen:generate(res, params)
 	
 	---@class MapGenerationContext
 	local ctx = {
-		res = res,
+		game_ctx = game_ctx,
+		res = ctx.res,
 		params = params,
 	}
 	
@@ -133,7 +135,7 @@ function m_map_gen:generate(res, params)
 		system(ctx)
 	end
 	
-	return ctx.map
+	return ctx
 end
 
 ---@return MapGenerator

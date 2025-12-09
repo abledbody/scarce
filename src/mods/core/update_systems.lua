@@ -1,5 +1,7 @@
 local Mouse = require"core/src/mouse"
 local Math = require"core/src/math"
+local Player = require"core/src/player"
+local Things = require"core/src/things"
 local SystemRegistry = require_ext"src/system_registry"
 local hook = SystemRegistry.new_hook
 
@@ -11,13 +13,11 @@ local hooks = {
 		end
 	),
 	
-	hook("core_update_player", "After", "update", 
-		function(ctx)
-			local map_config = ctx.res:get("config", "core_map")
-			ctx.player:interpret_inputs(ctx.entity_map)
-			ctx.player:animate(map_config.tile_size)
-		end
-	),
+	hook("core_update_player_inputs", "After", "update", Player.interpret_inputs),
+	
+	hook("core_update_apply_movement", "After", "update", Things.apply_movement),
+	
+	hook("core_update_animate_positions", "After", "update", Things.animate_movement),
 	
 	hook("core_update_tooltip", "After", "update", 
 		function(ctx)
@@ -41,7 +41,7 @@ local hooks = {
 	
 			ctx.camera_pos = Math.lerp(
 				ctx.camera_pos,
-				(ctx.player.entity.pos + 0.5) * map_config.tile_size - ctx.ui.viewport.bg.size * 0.5 + 0.5,
+				(ctx.player.grid_pos + 0.5) * map_config.tile_size - ctx.ui.viewport.bg.size * 0.5 + 0.5,
 				0.2
 			)
 			

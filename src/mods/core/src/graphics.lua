@@ -1,5 +1,3 @@
-local fmt = string.format
-
 ---@class GraphicsData
 local m_graphics_data = {}
 m_graphics_data.__index = m_graphics_data

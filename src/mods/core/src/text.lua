@@ -57,6 +57,7 @@ local function aprint_lines(lines, block_size, sizes, x, y, col, pivot, alignmen
 		end
 
 		--- @diagnostic disable-next-line: cast-local-type
+		local _
 		_, y = print(line, x + line_left_pad, y, col)
 	end
 end

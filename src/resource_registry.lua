@@ -1,4 +1,3 @@
-local insert = table.insert
 local fmt = string.format
 
 ---@class ResourceRegistry

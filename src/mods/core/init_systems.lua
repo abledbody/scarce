@@ -4,10 +4,11 @@ local new_graphics_data = require"core/src/graphics"
 local new_bg_viewport = require"core/src/bg_viewport"
 local new_game_viewport = require"core/src/game_viewport"
 local new_text_window = require"core/src/text_window"
-local Entities = require"core/src/entities"
 local new_tooltip = require"core/src/tooltip"
-local new_player = require"core/src/player"
+local Player = require"core/src/player"
 local MapGeneration = require"core/src/map_gen"
+local Ecs = require"core/src/ecs"
+local Things = require"core/src/things"
 
 local hook = SystemRegistry.new_hook
 
@@ -20,17 +21,12 @@ local hooks = {
 			---@class Context
 			---@field graphics GraphicsData
 			---@field camera_pos userdata
+			---@field entities Entities
+			---@field map_gen MapGenerator
 			
 			ctx.graphics = new_graphics_data()
 			ctx.camera_pos = vec(0, 0)
-		end
-	),
-	
-	hook("core_init_map_gen", "After", "core_init",
-		function(ctx)
-			---@class Context
-			---@field map_gen MapGenerator
-			
+			ctx.entities = Ecs.new()
 			ctx.map_gen = MapGeneration.new()
 		end
 	),
@@ -85,12 +81,13 @@ local hooks = {
 		end
 	),
 	
-	hook("core_register_map_gen_hooks", "After", "resources_loaded", MapGeneration.register_core_hooks),
+	hook("core_init_register_map_gen_hooks", "After", "resources_loaded", MapGeneration.register_core_hooks),
 	
 	hook("core_init_map", "After", "resources_loaded", 
 		function(ctx)
 			local map_config = ctx.res:get("config", "core_map")
-			local map_data = ctx.map_gen:generate(ctx.res, {
+			
+			local map_context = ctx.map_gen:generate(ctx, {
 				seed = math.random(2^53),
 				size = map_config.size,
 				basis_tile = ctx.res:get("tile", "core_grass_green"),
@@ -106,8 +103,10 @@ local hooks = {
 			
 			---@class Context
 			---@field map_data Map
+			---@field entity_map EntityMap
 			
-			ctx.map_data = map_data
+			ctx.entity_map = map_context.entity_map
+			ctx.map_data = map_context.map
 			
 			local color_over_coltab = ctx.res:get("coltab", "core_color_over")
 			
@@ -135,32 +134,19 @@ local hooks = {
 		end
 	),
 	
-	hook("core_init_entity_map", "After", "resources_loaded", 
-		function(ctx)
-			local map_config = ctx.res:get("config", "core_map")
-			
-			---@class Context
-			---@field entity_map EntityMap
-			
-			ctx.entity_map = Entities.new_map(map_config.size.x)
-		end
-	),
-	
 	hook("core_init_test_entities", "After", "resources_loaded", 
 		function(ctx)
-			local map_config = ctx.res:get("config", "core_map")
-			local color_over_coltab = ctx.res:get("coltab", "core_color_over")
-			
 			---@class Context
-			---@field player Player
+			---@field player Entity
 			
-			ctx.entity_map:new(
-				vec(5,5),
-				ctx.res:get("sprite", "core_drawstring_bag"),
-				25,
-				"T-shirt\n\fmA comfy shirt to wear.\n\fnFlammable\n\fnWearable\n\fcCloth"
+			ctx.entity_map:add(
+				ctx.entities:instantiate{
+					thing_renderer = Things.new_renderer(ctx.res:get("sprite", "core_drawstring_bag"), 25),
+					grid_pos = vec(5, 5),
+					tooltip = "T-shirt\n\fmA comfy shirt to wear.\n\fnFlammable\n\fnWearable\n\fcCloth"
+				}
 			)
-			ctx.player = new_player(ctx.res, ctx.entity_map, vec(10, 10), color_over_coltab, map_config.tile_size)
+			ctx.player = Player.new(ctx, vec(10, 10))
 		end
 	),
 }
