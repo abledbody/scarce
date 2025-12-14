@@ -84,7 +84,7 @@ local mod = {
 		hook("walker_test_init_register_map_gen_hooks", "After", "core_init_register_map_gen_hooks",
 			function(ctx)
 				ctx.map_gen.sys_reg:register(
-					hook("walker_test_spawn_walkers", "After", "core_desert", spawn_walkers)
+					hook("walker_test_spawn_walkers", "After", "core_init", spawn_walkers)
 				)
 			end
 		),

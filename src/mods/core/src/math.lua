@@ -8,9 +8,13 @@ end
 ---@param height integer
 ---@param scale number
 ---@param seed integer?
+---@param interpolator? fun(t: number):number
 ---@return userdata
-local function perlin(width, height, scale, seed)
+local function perlin(width, height, scale, seed, interpolator)
 	seed = seed or 1
+	interpolator = interpolator or function(t)
+		return 6 * t ^ 5 - 15 * t ^ 4 + 10 * t ^ 3
+	end
 	
 	math.randomseed(seed)
 	local seed_b = math.random(-2^53, 2^53)
@@ -69,8 +73,8 @@ local function perlin(width, height, scale, seed)
 	local dot_se = se_x * (frac_x - 1) + se_y * (frac_y - 1)
 	
 	-- Use a sigmoid polynomial curve for the interpolator.
-	local tx = 6 * frac_x ^ 5 - 15 * frac_x ^ 4 + 10 * frac_x ^ 3
-	local ty = 6 * frac_y ^ 5 - 15 * frac_y ^ 4 + 10 * frac_y ^ 3
+	local tx = interpolator(frac_x)
+	local ty = interpolator(frac_y)
 	
 	-- Bipolynomially interpolate the values of the four corners.
 	local lerped_n = (dot_ne - dot_nw) * tx + dot_nw

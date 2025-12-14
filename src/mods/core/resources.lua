@@ -20,6 +20,8 @@ local resources = {
 	res("sprite", "sprite", "core_anthro_draconic", {file = "core/gfx/things.gfx", i = 1}),
     
 	res("sprite", "sprite", "core_bush", {file = "core/gfx/things.gfx", i = 64}),
+	res("sprite", "sprite", "core_evergreen", {file = "core/gfx/things.gfx", i = 65}),
+	res("sprite", "sprite", "core_sapling", {file = "core/gfx/things.gfx", i = 66}),
     
 	res("sprite", "sprite", "core_drawstring_bag", {file = "core/gfx/things.gfx", i = 128}),
     

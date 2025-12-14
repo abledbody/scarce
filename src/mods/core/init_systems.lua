@@ -92,13 +92,49 @@ local hooks = {
 				size = map_config.size,
 				basis_tile = ctx.res:get("tile", "core_grass_green"),
 				
-				ocean_size = 12,
-				ocean_threshold = 0.55,
+				heightmap_layers = {
+					{scale = 32, strength = 1},
+					{scale = 16, strength = 0.6},
+					{scale = 8, strength = 0.5},
+				},
 				
-				desert_size = 6,
-				desert_threshold = 1.7,
+				height_affects_temperature = -0.5,
 				
-				beach_factor = 2.5,
+				temperature_layers = {
+					{scale = 64, strength = 1},
+				},
+				
+				moisture_layers = {
+					{scale = 64, strength = 1},
+					{scale = 32, strength = 0.6},
+				},
+				
+				cliff_threshold = 0.07,
+				
+				snow_temperature_threshold = 0.3,
+				snow_moisture_threshold = 0.1,
+				
+				fertility_moisture_influence = 1,
+				
+				fertility_layers = {
+					{scale = 24, strength = 0.8},
+					{scale = 12, strength = 0.8},
+					{scale = 6, strength = 0.5},
+				},
+				
+				desert_threshold = 0.25,
+				
+				sapling_fertility_threshold = 0.4,
+				sapling_density = 0.3,
+				sapling_ideal_temp = 0.5,
+				sapling_temp_bandwidth = 0.2,
+				
+				tree_fertility_threshold = 0.5,
+				tree_density = 0.5,
+				tree_ideal_temp = 0.4,
+				tree_temp_bandwidth = 0.3,
+				
+				ocean_height = 0.06
 			})
 			
 			---@class Context
@@ -115,19 +151,19 @@ local hooks = {
 				
 				-- Draw the foreground with mask 1
 				poke(0x5509, 0x7f)
-				map(map_data[2].bmp)
+				map(map_data.things)
 				poke(0x5509, 0x3f)
 				
 				-- Color in the foreground
 				memmap(color_over_coltab, 0x8000)
-				map(map_data[1].bmp)
+				map(map_data.thing_colors)
 				unmap(color_over_coltab)
 				
 				-- Draw and color the background only where mask 1 is not set
 				poke(0x550a, 0x7f)
-				map(map_data[4].bmp)
+				map(map_data.tiles)
 				memmap(color_over_coltab, 0x8000)
-				map(map_data[3].bmp)
+				map(map_data.tile_colors)
 				unmap(color_over_coltab)
 				poke(0x550a, 0x3f)
 			end
