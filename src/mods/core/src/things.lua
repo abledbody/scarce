@@ -119,7 +119,6 @@ end
 ---@param ctx Context
 local function apply_movement(ctx)
 	for entity in ctx.entities:query("grid_pos", "move_request") do
-		printh(entity.move_request)
 		ctx.entity_map:move(entity, entity.grid_pos + entity.move_request)
 		entity.move_request = nil
 	end
