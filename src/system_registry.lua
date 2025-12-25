@@ -6,14 +6,27 @@ local new_index_map = require"src/index_map"
 local default_ctor = require"src/utils".default_ctor
 local new_multi_bimap = require"src/multi_bimap"
 
+---@class Hook
+---@field system_key string
+---@field target_key string
+---@field target_relation "Before"|"After"
+---@field system fun(ctx: Context)
 
 ---@class SystemRegistry
 local m_system_registry = {}
 m_system_registry.__index = m_system_registry
 
----@param hook Hook
-function m_system_registry:register(hook)
-	insert(self.system_hooks, hook)
+---@param key string
+---@param target_relation "Before"|"After"
+---@param target_key string
+---@param system fun(ctx: Context)
+function m_system_registry:register(key, target_relation, target_key, system)
+	insert(self.system_hooks, {
+		system_key = key,
+		target_key = target_key,
+		target_relation = target_relation,
+		system = system
+	})
 end
 
 ---@param key2hook table<string, Hook>
@@ -129,22 +142,13 @@ function m_system_registry:build_order()
 	
 	local components, roots, loops = identify_components(key2hook)
 
-	local valid_trees = {}
 	local orphans = {}
 	
-	-- index_map population of system order to be saved into self
-	-- All roots which don't match get shoved into orphans.
+	-- index_map population of system order.
+	-- All roots which aren't the canonical root get shoved into orphans.
 
 	for comp_id, tree in ipairs(components.key2set) do
-		local orphan = true
-		for _, test_key in ipairs(self.root_keys) do
-			if roots[comp_id] == test_key then
-				valid_trees[test_key] = true
-				orphan = false
-				break
-			end
-		end
-		if orphan then insert(orphans, tree) end
+		if roots[comp_id] != "root" then insert(orphans, tree) end
 	end
 	
 	local function visit(tree, system_key)
@@ -178,28 +182,15 @@ function m_system_registry:build_order()
 	end
 
 	-- Use the index maps to get the system functions out of the hooks in order.
-	local function compile(tree, key)
-		local systems = {}
-		if tree then
-			for _, k in ipairs(tree.keys) do
-				if k != key then
-					insert(systems, key2hook[k].system)
-				end
-			end
-		end
-		self[key .. "_systems"] = systems
-	end
 	
-	for root_key in pairs(valid_trees) do
-		local tree = new_index_map({root_key})
-		visit(tree, root_key)
-
-		compile(tree, root_key)
-	end
-
-	for _, root_key in ipairs(self.root_keys) do
-		local systems_key = root_key .. "_systems"
-		if not self[systems_key] then self[systems_key] = {} end
+	local tree = new_index_map({"root"})
+	visit(tree, "root")
+	
+	self.systems = {}
+	for _, k in ipairs(tree.keys) do
+		if k != "root" then
+			insert(self.systems, key2hook[k].system)
+		end
 	end
 	
 	-- Organize the loops neatly into a dense array.
@@ -264,34 +255,22 @@ function m_system_registry:sanitize_hooks()
 	return #messages > 0 and messages or nil
 end
 
----@param root_keys string[]
-local function new(root_keys)
+---@param ctx Context
+function m_system_registry:execute(ctx)
+	for _, f in pairs(self.systems) do
+		f(ctx)
+	end
+end
+
+local function new()
 	---@class SystemRegistry
 	local registry = {
-		root_keys = root_keys,
 		system_hooks = {},
+		systems = {},
 	}
 	return setmetatable(registry, m_system_registry)
 end
 
----@param key string
----@param target_relation "Before"|"After"
----@param target_key string
----@param system fun(ctx: Context)
----@return Hook
-local function new_hook(key, target_relation, target_key, system)
-	---@class Hook
-	local hook = {
-		system_key = key,
-		target_key = target_key,
-		target_relation = target_relation,
-		system = system
-	}
-	
-	return hook
-end
-
 return {
 	new = new,
-	new_hook = new_hook,
 }

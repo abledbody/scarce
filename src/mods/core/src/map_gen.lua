@@ -370,7 +370,7 @@ local function new()
 	local map_gen = {
 		---@class MapGeneratorSystemRegistry : SystemRegistry
 		---@field generate_systems fun(ctx: MapGenerationContext)[]
-		sys_reg = SystemRegistry.new({"generate"})
+		sys_reg = SystemRegistry.new()
 	}
 	
 	return setmetatable(map_gen, m_map_gen)
