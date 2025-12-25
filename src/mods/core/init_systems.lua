@@ -134,7 +134,7 @@ local hooks = {
 				tree_ideal_temp = 0.4,
 				tree_temp_bandwidth = 0.3,
 				
-				ocean_height = 0.06
+				ocean_height = 0.2
 			})
 			
 			---@class Context

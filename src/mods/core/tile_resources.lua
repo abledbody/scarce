@@ -23,6 +23,7 @@ local resources = {
 	
 	res("data", "tile", "core_evergreen_dark", {sprite = "core_evergreen", col = 3}),
 	res("data", "tile", "core_sapling_green", {sprite = "core_sapling", col = 11}),
+	res("data", "tile", "core_boulder_grey", {sprite = "core_boulder", col = 22, random_flip_x = true}),
 }
 
 return resources
