@@ -7,8 +7,6 @@ local function register(import)
 	
 	import("sprite_ud", "coltab", "core_color_over", {file = "core/gfx/coltabs.gfx", i = 0})
 	
-	import("pod", "map", "core_test", "core/map/0.map")
-	
 	import("config", "config", "core_ui_colors", "core/configs/colors.lua")
 	import("config", "config", "core_viewport", "core/configs/viewport.lua")
 	import("config", "config", "core_map", "core/configs/map.lua")
