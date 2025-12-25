@@ -14,7 +14,15 @@ local function register(hook)
 	)
 	
 	hook("core_player_inputs", "After", "root", Player.interpret_inputs)
-	hook("core_apply_movement", "After", "root", Things.apply_movement)
+	
+	hook("core_time_step", "After", "root",
+		function(ctx)
+			if ctx.player.move_request then
+				ctx.step_systems:execute(ctx)
+			end
+		end
+	)
+	
 	hook("core_animate_positions", "After", "root", Things.animate_movement)
 	
 	hook("core_tooltip", "After", "root", 

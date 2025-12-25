@@ -13,7 +13,9 @@ local function interpret_inputs(ctx)
 	)
 	
 	for entity in ctx.entities:query("player") do
-		entity.move_request = move_request
+		if move_request.x != 0 or move_request.y != 0 then
+			entity.move_request = move_request
+		end
 	end
 end
 

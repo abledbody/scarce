@@ -8,9 +8,16 @@ local new_tooltip = require"core/src/tooltip"
 local Player = require"core/src/player"
 local MapGeneration = require"core/src/map_gen"
 local Things = require"core/src/things"
+local StepSystems = require"core/step_systems"
 
 ---@param hook fun(key: string, target_relation: "Before"|"After", target_key: string, system: fun(ctx: Context))
 local function register(hook)
+	hook("core_register_step", "After", "root",
+		function(ctx)
+			StepSystems.register(ctx.step_systems:make_registrator())
+		end
+	)
+	
 	hook("core_palette", "After", "root", 
 		function(ctx)
 			ctx.res:get("pal", "core_main"):poke(0x5000)
