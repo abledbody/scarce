@@ -42,14 +42,16 @@ local function reg_config(_, value)
     return include(value)
 end
 
----@type Importer[]
-local registrators = {
-    {key = "data", func = function(_, v) return v end},
-    {key = "pod", func = reg_pod},
-    {key = "config", func = reg_config},
-    {key = "sprite", func = reg_sprite},
-    {key = "sprite_ud", func = reg_sprite_ud},
-    {key = "proc_sprite", func = reg_proc_sprite},
-}
+---@param res ResourceRegistry
+local function register(res)
+    res:register_importer("data", function(_, v) return v end)
+        :register_importer("pod", reg_pod)
+        :register_importer("config", reg_config)
+        :register_importer("sprite", reg_sprite)
+        :register_importer("sprite_ud", reg_sprite_ud)
+        :register_importer("proc_sprite", reg_proc_sprite)
+end
 
-return registrators
+return {
+    register = register,
+}

@@ -22,31 +22,12 @@ end
 
 --------------------------------------Game State---------------------------------------
 
----@param mods Mod[]
----@return Context
-local function new_context(mods)
-	---@class MainSystemRegistry : SystemRegistry
-	---@field init_systems fun(ctx: Context)[]
-	---@field resources_loaded_systems fun(ctx: Context)[]
-	---@field update_systems fun(ctx: Context)[]
-	---@field draw_systems fun(ctx: Context)[]
-	local system_reg = SystemRegistry.new({"init", "resources_loaded", "update", "draw"})
-	local res = ResourceRegistry.new()
+---@param registry SystemRegistry
+local function execute_and_handle(registry, ctx)
+	local loops, orphans = registry:execute(ctx)
 	
-	for _, mod in ipairs(mods) do
-		if mod.system_hooks then
-			for _, hook in ipairs(mod.system_hooks) do
-				system_reg:register(hook)
-			end
-		end
-		if mod.importers then
-			for _, registrator in ipairs(mod.importers) do
-				res:register_importer(registrator)
-			end
-		end
-	end
+	if not (loops and orphans) then return end
 	
-	local loops, orphans, hook_errors = system_reg:build_order()
 	-- While there's no way to manage this in game, let's just print and stop.
 	local errored = false
 	
@@ -73,20 +54,18 @@ local function new_context(mods)
 		errored = true
 	end
 	
-	if hook_errors then
-		for _, v in ipairs(hook_errors) do
-			print(v)
-		end
-		errored = true
-	end
-	
 	if errored then stop() end
-	
+end
+
+---@return Context
+local function new_context()
 	--- @class Context
 	local ctx = {
-		mods = mods,
-		system_reg = system_reg,
-		res = res,
+		before_imports = SystemRegistry.new(),
+		after_imports  = SystemRegistry.new(),
+		updates        = SystemRegistry.new(),
+		draws          = SystemRegistry.new(),
+		res = ResourceRegistry.new(),
 	}
 	
 	return ctx
@@ -97,39 +76,30 @@ end
 function _init()
 	cd("src/mods")
 	local mods = load_mods()
-	ctx = new_context(mods)
+	---@diagnostic disable-next-line: lowercase-global
+	ctx = new_context()
 	
-	for _, system in ipairs(ctx.system_reg.init_systems) do
-		system(ctx)
+	for _, mod in ipairs(mods) do
+		if mod.register_systems then mod.register_systems(ctx) end
 	end
 	
-	for _, mod in ipairs(ctx.mods) do
-		if mod.resources then
-			for _, resource in ipairs(mod.resources) do
-				if ctx.res:register(ctx, resource) then
-					printh("Registered resource: " .. resource.key)
-				else
-					printh(fmt("Failed to find resource \"%s\" with \"%s\"", resource.key, tostring(resource.value)))
-				end
-			end
-		end
+	for _, mod in ipairs(mods) do
+		if mod.register_importers then mod.register_importers(ctx.res) end
 	end
 	
-	for _, system in ipairs(ctx.system_reg.resources_loaded_systems) do
-		system(ctx)
+	execute_and_handle(ctx.before_imports, ctx)
+	for _, mod in ipairs(mods) do
+		if mod.import_resources then mod.import_resources(ctx) end
 	end
+	execute_and_handle(ctx.after_imports, ctx)
 end
 
 function _update()
-	for _, system in ipairs(ctx.system_reg.update_systems) do
-		system(ctx)
-	end
+	execute_and_handle(ctx.updates, ctx)
 end
 
 function _draw()
-	for _, system in ipairs(ctx.system_reg.draw_systems) do
-		system(ctx)
-	end
+	execute_and_handle(ctx.draws, ctx)
 end
 
 include"src/error_explorer.lua"

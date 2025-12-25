@@ -80,16 +80,17 @@ end
 
 ---@type Mod
 local mod = {
-	system_hooks = {
-		hook("walker_test_init_register_map_gen_hooks", "After", "core_init_register_map_gen_hooks",
+	register_systems = function()
+		ctx.after_imports:register("walker_test_register_map_gen_hooks", "After", "core_register_map_gen_hooks",
 			function(ctx)
-				ctx.map_gen.sys_reg:register(
-					hook("walker_test_spawn_walkers", "After", "core_init", spawn_walkers)
+				ctx.map_gen.generate_systems:register(
+					"walker_test_spawn_walkers", "After", "core_init", spawn_walkers
 				)
 			end
-		),
-		hook("walker_test_update_random_walk", "Before", "core_update_apply_movement", update_walkers)
-	},
+		)
+		
+		ctx.updates:register("walker_random_walk", "Before", "core_apply_movement", update_walkers)
+	end,
 }
 
 return mod

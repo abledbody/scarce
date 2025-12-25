@@ -316,25 +316,26 @@ local function init_map(ctx)
 	randomseed(ctx.params.seed)
 end
 
+---@param ctx Context
 local function register_core_hooks(ctx)
-	local registry = ctx.map_gen.sys_reg
+	local import = ctx.map_gen.generate_systems:make_registrator()
 	
-	registry:register(hook("core_init", "After", "generate", init_map))
+	import("core_init", "After", "root", init_map)
 	
-	registry:register(hook("core_height", "After", "core_init", height))
-	registry:register(hook("core_slope", "After", "core_height", slope))
-	registry:register(hook("core_temperature", "After", "core_height", temperature))
-	registry:register(hook("core_moisture", "After", "core_init", moisture))
-	registry:register(hook("core_fertility", "After", "core_moisture", fertility))
+	import("core_height", "After", "core_init", height)
+	import("core_slope", "After", "core_height", slope)
+	import("core_temperature", "After", "core_height", temperature)
+	import("core_moisture", "After", "core_init", moisture)
+	import("core_fertility", "After", "core_moisture", fertility)
 	
-	registry:register(hook("core_fill_basis", "After", "core_init", fill_basis))
-	registry:register(hook("core_cliffs", "After", "core_init", cliffs))
-	registry:register(hook("core_desert", "After", "core_init", desert))
-	registry:register(hook("core_snow", "After", "core_init", snow))
-	registry:register(hook("core_ocean", "After", "core_init", ocean))
+	import("core_fill_basis", "After", "core_init", fill_basis)
+	import("core_cliffs", "After", "core_init", cliffs)
+	import("core_desert", "After", "core_init", desert)
+	import("core_snow", "After", "core_init", snow)
+	import("core_ocean", "After", "core_init", ocean)
 	
-	registry:register(hook("core_plant_saplings", "After", "core_init", plant_saplings))
-	registry:register(hook("core_plant_trees", "After", "core_init", plant_trees))
+	import("core_plant_saplings", "After", "core_init", plant_saplings)
+	import("core_plant_trees", "After", "core_init", plant_trees)
 end
 
 ---@class MapGenerator
@@ -345,11 +346,6 @@ m_map_gen.__index = m_map_gen
 ---@param params table
 ---@return MapGenerationContext
 function m_map_gen:generate(game_ctx, params)
-	local _, _, errs = self.sys_reg:build_order()
-	if errs then
-		error(errs[1])
-	end
-	
 	---@class MapGenerationContext
 	local ctx = {
 		game_ctx = game_ctx,
@@ -357,9 +353,7 @@ function m_map_gen:generate(game_ctx, params)
 		params = params,
 	}
 	
-	for _, system in ipairs(self.sys_reg.generate_systems) do
-		system(ctx)
-	end
+	self.generate_systems:execute(ctx)
 	
 	return ctx
 end
@@ -368,9 +362,7 @@ end
 local function new()
 	---@class MapGenerator
 	local map_gen = {
-		---@class MapGeneratorSystemRegistry : SystemRegistry
-		---@field generate_systems fun(ctx: MapGenerationContext)[]
-		sys_reg = SystemRegistry.new()
+		generate_systems = SystemRegistry.new()
 	}
 	
 	return setmetatable(map_gen, m_map_gen)

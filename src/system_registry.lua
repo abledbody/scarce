@@ -10,7 +10,7 @@ local new_multi_bimap = require"src/multi_bimap"
 ---@field system_key string
 ---@field target_key string
 ---@field target_relation "Before"|"After"
----@field system fun(ctx: Context)
+---@field system fun(ctx: table)
 
 ---@class SystemRegistry
 local m_system_registry = {}
@@ -19,14 +19,50 @@ m_system_registry.__index = m_system_registry
 ---@param key string
 ---@param target_relation "Before"|"After"
 ---@param target_key string
----@param system fun(ctx: Context)
+---@param system fun(ctx: table)
+---@return SystemRegistry self
 function m_system_registry:register(key, target_relation, target_key, system)
+	local system_key_type = type(key)
+	local target_key_type = type(target_key)
+	local system_type = type(system)
+	local relation_type = type(target_relation)
+	local wrong_system_key_type = system_key_type != "string"
+	local wrong_target_key_type = target_key_type != "string"
+	local wrong_system_type = system_type != "function"
+	local wrong_relation_type = relation_type != "string"
+	local wrong_relation_value =
+		target_relation != "Before"
+		and target_relation != "After"
+	
+	local err
+	if wrong_system_key_type then
+		err = fmt("Invalid system key type %s. Must be a string.", system_key_type)
+	end
+	if wrong_target_key_type then
+		err = (err and err .. "\n" or "") .. fmt("Invalid target key type %s. Must be a string.", target_key_type)
+	end
+	if wrong_system_type then
+		err = (err and err .. "\n" or "") .. fmt("Invalid system type %s. Must be a function which takes a context parameter.", system_type)
+	end
+	if wrong_relation_type then
+		err = (err and err .. "\n" or "") .. fmt("Invalid system relation type %s. Must be \"After\" or \"Before\".", relation_type)
+	end
+	if wrong_relation_value then
+		err = (err and err .. "\n" or "") .. fmt("Invalid system relation %s. Must be \"After\" or \"Before\".", target_relation)
+	end
+	
+	assert(not err, err)
+	
 	insert(self.system_hooks, {
 		system_key = key,
 		target_key = target_key,
 		target_relation = target_relation,
 		system = system
 	})
+	
+	self.needs_rebuilt = true
+	
+	return self
 end
 
 ---@param key2hook table<string, Hook>
@@ -102,10 +138,7 @@ end
 
 ---@return table<integer, Hook[]>
 ---@return table<string, true>[]
----@return string[]?
 function m_system_registry:build_order()
-	local hook_errors = self:sanitize_hooks()
-	
 	-- self.system_hooks defines a directed peseudoforest.
 	-- We need to:
 	-- 1. Override earlier nodes of the same key with the definitions of later nodes.
@@ -199,74 +232,38 @@ function m_system_registry:build_order()
 		insert(loops_packed, v)
 	end
 	
-	return loops_packed, orphans, hook_errors
+	return loops, orphans
 end
 
----@param hook Hook
----@return string? error_message
-local function validate_hook(hook)
-	local hook_type = type(hook)
-	if hook_type != "table" then return fmt("Invalid hook type: %s", hook_type) end
-	
-	local system_key_type = type(hook.system_key)
-	local target_key_type = type(hook.target_key)
-	local system_type = type(hook.system)
-	local relation_type = type(hook.target_relation)
-	local wrong_system_key_type = system_key_type != "string"
-	local wrong_target_key_type = target_key_type != "string"
-	local wrong_system_type = system_type != "function"
-	local wrong_relation_type = relation_type != "string"
-	local wrong_relation_value =
-		hook.target_relation != "Before"
-		and hook.target_relation != "After"
-	
-	local msg
-	if wrong_system_key_type then
-		msg = fmt("Invalid system key type %s. Must be a string.", system_key_type)
-	end
-	if wrong_target_key_type then
-		msg = (msg and msg .. "\n" or "") .. fmt("Invalid target key type %s. Must be a string.", target_key_type)
-	end
-	if wrong_system_type then
-		msg = (msg and msg .. "\n" or "") .. fmt("Invalid system type %s. Must be a function which takes a context parameter.", system_type)
-	end
-	if wrong_relation_type then
-		msg = (msg and msg .. "\n" or "") .. fmt("Invalid system relation type %s. Must be \"After\" or \"Before\".", relation_type)
-	end
-	if wrong_relation_value then
-		msg = (msg and msg .. "\n" or "") .. fmt("Invalid system relation %s. Must be \"After\" or \"Before\".", hook.target_relation)
-	end
-	
-	return msg
-end
-
----@return string[]|nil
-function m_system_registry:sanitize_hooks()
-	local messages = {}
-	for i = #self.system_hooks, 1, -1 do
-		local hook = self.system_hooks[i]
-		local msg = validate_hook(hook)
-		if msg then
-			insert(messages, msg)
-			remove(self.system_hooks, i)
-		end
-	end
-	
-	return #messages > 0 and messages or nil
-end
-
----@param ctx Context
+---@param ctx table
+---@return table<integer, Hook[]>?
+---@return table<string, true>[]?
 function m_system_registry:execute(ctx)
+	local loops, orphans
+	if self.needs_rebuilt then
+		loops, orphans = self:build_order()
+	end
+	
 	for _, f in pairs(self.systems) do
 		f(ctx)
 	end
+	
+	return loops, orphans
 end
 
+function m_system_registry:make_registrator()
+	return function(key, target_relation, target_key, system)
+		self:register(key, target_relation, target_key, system)
+	end
+end
+
+---@return SystemRegistry
 local function new()
 	---@class SystemRegistry
 	local registry = {
 		system_hooks = {},
 		systems = {},
+		needs_rebuilt = false
 	}
 	return setmetatable(registry, m_system_registry)
 end

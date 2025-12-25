@@ -4,30 +4,39 @@ local fmt = string.format
 local m_resource_registry = {}
 m_resource_registry.__index = m_resource_registry
 
----@class Importer
----@field key string
----@field func fun(ctx: Context, value: any): any
-
-
----@param importer Importer
-function m_resource_registry:register_importer(importer)
-	self.importers[importer.key] = importer.func
+---@param key string
+---@param func fun(ctx: table, value: any): any
+---@return ResourceRegistry self
+function m_resource_registry:register_importer(key, func)
+	self.importers[key] = func
+	
+	return self
 end
 
----@param ctx Context
----@param resource Resource
-function m_resource_registry:register(ctx, resource)
-	local res = self.importers[resource.importer](ctx, resource.value)
-	if res == nil then return false end
+---@param ctx table
+---@param importer string
+---@param kind string
+---@param key string
+---@param value boolean|number|userdata|table|function|string
+---@return ResourceRegistry self
+function m_resource_registry:register(ctx, importer, kind, key, value)
+	local res = self.importers[importer](ctx, value)
 	
-	local kind = self.kinds[resource.kind]
-	if not kind then
-		kind = {}
-		self.kinds[resource.kind] = kind
+	if res == nil then
+		printh(fmt("Failed to find resource \"%s\" with \"%s\"", key, tostring(value)))
 	end
 	
-	kind[resource.key] = res
-	return true
+	local kind_array = self.kinds[kind]
+	if not kind_array then
+		kind_array = {}
+		self.kinds[kind] = kind_array
+	end
+	
+	kind_array[key] = res
+	
+	printh("Registered resource: " .. key)
+	
+	return self
 end
 
 ---@param kind_key string
@@ -37,9 +46,17 @@ function m_resource_registry:get(kind_key, key)
 	local kind = self.kinds[kind_key]
 	local value = kind and kind[key]
 	if not value then
-		error(fmt("Failed to fetch resource \"%s\" of kind \"%s\"", key, kind_key))
+		error(fmt("Failed to fetch resource \"%s\" of kind \"%s\"", tostr(key), tostr(kind_key)))
 	end
 	return value
+end
+
+---@param ctx table
+---@return fun(importer: string, kind: string, key: string, value: boolean|number|userdata|table|function|string)
+function m_resource_registry:make_registrator(ctx)
+	return function(importer, kind, key, resource)
+		self:register(ctx, importer, kind, key, resource)
+	end
 end
 
 ---@return ResourceRegistry
@@ -53,23 +70,6 @@ local function new()
 	return setmetatable(reg, m_resource_registry)
 end
 
----@param importer string
----@param kind string
----@param key string
----@param value boolean|number|userdata|table|function|string
-local function new_resource(importer, kind, key, value)
-	---@class Resource
-	local resource = {
-		importer = importer,
-		kind = kind,
-		key = key,
-		value = value,
-	}
-	
-	return resource
-end
-
 return {
 	new = new,
-	new_resource = new_resource,
 }

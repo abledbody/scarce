@@ -1,25 +1,23 @@
+---@diagnostic disable: redefined-local
+
 local Mouse = require"core/src/mouse"
 local Math = require"core/src/math"
 local Player = require"core/src/player"
 local Things = require"core/src/things"
-local SystemRegistry = require_ext"src/system_registry"
-local hook = SystemRegistry.new_hook
 
----@type Hook[]
-local hooks = {
-	hook("core_update_mouse", "After", "update",
+---@param hook fun(key: string, target_relation: "Before"|"After", target_key: string, system: fun(ctx: Context))
+local function register(hook)
+	hook("core_mouse", "After", "root",
 		function()
 			Mouse.frame_start()
 		end
-	),
+	)
 	
-	hook("core_update_player_inputs", "After", "update", Player.interpret_inputs),
+	hook("core_player_inputs", "After", "root", Player.interpret_inputs)
+	hook("core_apply_movement", "After", "root", Things.apply_movement)
+	hook("core_animate_positions", "After", "root", Things.animate_movement)
 	
-	hook("core_update_apply_movement", "After", "update", Things.apply_movement),
-	
-	hook("core_update_animate_positions", "After", "update", Things.animate_movement),
-	
-	hook("core_update_tooltip", "After", "update", 
+	hook("core_tooltip", "After", "root", 
 		function(ctx)
 			local map_config = ctx.res:get("config", "core_map")
 			local mouse_pos = Mouse.position()
@@ -32,9 +30,9 @@ local hooks = {
 			ctx.ui.tooltip:set_text(entity and entity[1] and entity[1].tooltip)
 			ctx.ui.tooltip:set_pos(mouse_pos)
 		end
-	),
+	)
 	
-	hook("core_update_camera", "After", "update", 
+	hook("core_camera", "After", "root", 
 		function(ctx)
 			local map_config = ctx.res:get("config", "core_map")
 			local last_cam_pos = ctx.camera_pos:copy()
@@ -47,15 +45,15 @@ local hooks = {
 			
 			ctx.ui.viewport.bg:move_view(ctx.camera_pos, last_cam_pos)
 		end
-	),
+	)
 	
-	hook("core_update_scroll_text", "After", "update", 
+	hook("core_scroll_text", "After", "root", 
 		function(ctx)
 			ctx.ui.text_window:scroll(Mouse.scroll_delta().y * -5)
 		end
-	),
+	)
 	
-	hook("core_update_debug_populate_text", "After", "update", 
+	hook("core_debug_populate_text", "After", "root", 
 		function(ctx)
 			if btnp(4) then
 				local foo = ""
@@ -72,7 +70,9 @@ local hooks = {
 				ctx.ui.text_window:push(foo .. "?")
 			end
 		end
-	),
-}
+	)
+end
 
-return hooks
+return {
+	register = register,
+}

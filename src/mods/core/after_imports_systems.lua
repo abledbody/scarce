@@ -1,49 +1,29 @@
-local SystemRegistry = require_ext"src/system_registry"
+---@diagnostic disable: redefined-local
+
 local UI = require"core/src/ui"
-local new_graphics_data = require"core/src/graphics"
 local new_bg_viewport = require"core/src/bg_viewport"
 local new_game_viewport = require"core/src/game_viewport"
 local new_text_window = require"core/src/text_window"
 local new_tooltip = require"core/src/tooltip"
 local Player = require"core/src/player"
 local MapGeneration = require"core/src/map_gen"
-local Ecs = require"core/src/ecs"
 local Things = require"core/src/things"
 
-local hook = SystemRegistry.new_hook
-
----@type Hook[]
-local hooks = {
-	hook("core_init", "After", "init", 
-		function(ctx)
-			window()
-			
-			---@class Context
-			---@field graphics GraphicsData
-			---@field camera_pos userdata
-			---@field entities Entities
-			---@field map_gen MapGenerator
-			
-			ctx.graphics = new_graphics_data()
-			ctx.camera_pos = vec(0, 0)
-			ctx.entities = Ecs.new()
-			ctx.map_gen = MapGeneration.new()
-		end
-	),
-	
-	hook("core_init_palette", "After", "resources_loaded", 
+---@param hook fun(key: string, target_relation: "Before"|"After", target_key: string, system: fun(ctx: Context))
+local function register(hook)
+	hook("core_palette", "After", "root", 
 		function(ctx)
 			ctx.res:get("pal", "core_main"):poke(0x5000)
 		end
-	),
+	)
 	
-	hook("core_init_font", "After", "resources_loaded", 
+	hook("core_font", "After", "root", 
 		function(ctx)
 			ctx.res:get("font", "core_charcoal"):poke(0x4000)
 		end
-	),
+	)
 	
-	hook("core_init_ui", "After", "resources_loaded", 
+	hook("core_ui", "After", "root", 
 		function (ctx)
 			local viewport_config = ctx.res:get("config", "core_viewport")
 			local map_config = ctx.res:get("config", "core_map")
@@ -79,11 +59,11 @@ local hooks = {
 			
 			ctx.ui.tooltip = new_tooltip()
 		end
-	),
+	)
 	
-	hook("core_init_register_map_gen_hooks", "After", "resources_loaded", MapGeneration.register_core_hooks),
+	hook("core_register_map_gen_hooks", "After", "root", MapGeneration.register_core_hooks)
 	
-	hook("core_init_map", "After", "resources_loaded", 
+	hook("core_map", "After", "root", 
 		function(ctx)
 			local map_config = ctx.res:get("config", "core_map")
 			
@@ -142,6 +122,7 @@ local hooks = {
 			---@field entity_map EntityMap
 			
 			ctx.entity_map = map_context.entity_map
+			assert(ctx.entity_map)
 			ctx.map_data = map_context.map
 			
 			local color_over_coltab = ctx.res:get("coltab", "core_color_over")
@@ -168,9 +149,9 @@ local hooks = {
 				poke(0x550a, 0x3f)
 			end
 		end
-	),
+	)
 	
-	hook("core_init_test_entities", "After", "resources_loaded", 
+	hook("core_test_entities", "After", "root", 
 		function(ctx)
 			---@class Context
 			---@field player Entity
@@ -184,7 +165,9 @@ local hooks = {
 			)
 			ctx.player = Player.new(ctx, vec(10, 10))
 		end
-	),
-}
+	)
+end
 
-return hooks
+return {
+	register = register,
+}

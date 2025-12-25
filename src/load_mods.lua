@@ -2,11 +2,11 @@ local insert = table.insert
 local fmt = string.format
 
 ---@class Mod
----@field system_hooks Hook[]?
----@field resources Resource[]?
----@field importers Importer[]?
----@field dir string?
+---@field register_systems fun(ctx: Context)?
+---@field register_importers fun(res: ResourceRegistry)?
+---@field import_resources fun(ctx: Context)?
 
+---@return Mod[]
 return function()
 	-- Mod order is a list of the names of mods in the order they should be loaded and executed.
 	mkdir("/appdata/scarce")
