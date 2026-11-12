@@ -1,7 +1,4 @@
 {
-	"workspace.library": [
-		"C:\\lualib\\picotron-definitions"
-	],
 	"runtime.nonstandardSymbol": [
 		"!=",
 		"+=",
@@ -21,8 +18,5 @@
 		"err-esc",
 		"need-check-nil"
 	],
-	"runtime.version": "Lua 5.4",
-	"runtime.special": {
-		"require_ext": "require"
-	}
+	"runtime.version": "Lua 5.4"
 }
