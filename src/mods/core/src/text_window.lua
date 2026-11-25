@@ -2,6 +2,7 @@ local UI = require"core/src/ui"
 local insert, remove = table.insert, table.remove
 local ceil, floor, max, min = math.ceil, math.floor, math.max, math.min
 
+local dummy_draw_target = userdata("u8", 1, 1)
 
 ---@class TextWindow
 local m_text_window = {}
@@ -32,7 +33,7 @@ end
 
 ---@param msg string
 function m_text_window:add_msg_wrapped(msg)
-	local cx, cy = camera(-1000)
+	local old_draw_target = set_draw_target(dummy_draw_target)
 	
 	insert(self.lines, "") -- Add a new line to separate messages.
 	
@@ -65,7 +66,7 @@ function m_text_window:add_msg_wrapped(msg)
 		insert(self.lines, line)
 	end
 	
-	camera(cx, cy)
+	set_draw_target(old_draw_target)
 	
 	local removed = max(0, #self.lines - self.max_history)
 	for _ = 1, #self.lines - self.max_history do
