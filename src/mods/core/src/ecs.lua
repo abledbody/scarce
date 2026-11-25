@@ -10,6 +10,17 @@ end
 local m_entities = {}
 m_entities.__index = m_entities
 
+-- The metatable for the closing value each query hands to its for loop. Lua
+-- calls __close when the loop ends for any reason: run to the end, break,
+-- return or error. The closing value holds the Entities in slot 1.
+local query_closer = {__close = function(closer)
+	local self = closer[1]
+	self.iterating -= 1
+	if self.iterating == 0 then
+		self:flush_changes()
+	end
+end}
+
 ---@param entity Entity
 function m_entities:insert(entity)
 	for k in pairs(entity._components) do
@@ -166,19 +177,27 @@ function m_entities:query(...)
 	local component_keys = {...}
 	local component_count = #component_keys
 	
+	-- One row per component: how many entities have it, then its place in
+	-- component_keys. Sorted, the first row is the shortest list. A single row
+	-- is left alone: sort() sorts the values of a one-row userdata as a flat
+	-- list, even one made 2D.
 	local by_frequency = userdata("i64", 2, component_count)
 	for i = 1, component_count do
 		local lookup = self.component_lookup[component_keys[i]]
 		if not lookup then return function() end end
 		by_frequency:set(0, i - 1, #lookup, i)
 	end
-	by_frequency:sort()
+	if component_count > 1 then
+		by_frequency:sort()
+	end
 	
 	local rarest_list = self.component_lookup[component_keys[by_frequency[1]]]
 	
 	local entity_i = 1
 	
 	self.iterating += 1
+	local closer = setmetatable({self}, query_closer)
+	
 	return function()
 		local entity
 		
@@ -194,12 +213,7 @@ function m_entities:query(...)
 			end
 			if valid then return entity end
 		end
-		
-		self.iterating -= 1
-		if self.iterating == 0 then
-			self:flush_changes()
-		end
-	end
+	end, nil, nil, closer
 end
 
 ---@return Entities
