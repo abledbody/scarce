@@ -21,6 +21,11 @@ local function register(import)
 	
 	import("sprite", "sprite", "core_drawstring_bag", {file = "core/gfx/things.gfx", i = 128})
 	
+	import("sprite", "sprite", "core_stairs_up", {file = "core/gfx/things.gfx", i = 192})
+	import("sprite", "sprite", "core_stairs_down", {file = "core/gfx/things.gfx", i = 193})
+	import("sprite", "sprite", "core_door_elevator_closed", {file = "core/gfx/things.gfx", i = 194})
+	import("sprite", "sprite", "core_door_elevator_open", {file = "core/gfx/things.gfx", i = 195})
+	
 	import("sprite", "sprite", "core_ui_text_detached", {file = "core/gfx/ui.gfx", i = 0})
 	
 	for i = 0, 63 do
