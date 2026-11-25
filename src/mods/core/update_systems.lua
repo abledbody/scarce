@@ -17,9 +17,7 @@ local function register(hook)
 	
 	hook("core_time_step", "After", "root",
 		function(ctx)
-			if ctx.player.move_request then
-				ctx.step_systems:execute(ctx)
-			end
+			ctx.step_systems:execute(ctx)
 		end
 	)
 	

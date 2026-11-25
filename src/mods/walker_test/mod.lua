@@ -3,10 +3,11 @@ local Things = require"core/src/things"
 local SystemRegistry = require_ext"src/system_registry"
 local hook = SystemRegistry.new_hook
 
-local MAX_RANDOM_WALK_TIME = 10
+local MIN_RANDOM_WALK_TIME = 20
+local MAX_RANDOM_WALK_TIME = 120
 -- Steps a walker can go without a drink. Each walker picks its own limit in this range.
-local MIN_THIRST_LIMIT = 25
-local MAX_THIRST_LIMIT = 50
+local MIN_THIRST_LIMIT = 1500
+local MAX_THIRST_LIMIT = 3000
 -- Walkers within this many tiles of the player report what they do in the log.
 local CHATTER_RANGE = 7
 
@@ -163,7 +164,7 @@ local function spawn_walkers(ctx)
 			grid_pos = pos,
 			display_pos = pos * tile_size,
 			move_request = vec(0, 0),
-			random_walk_timer = rnd(MAX_RANDOM_WALK_TIME),
+			random_walk_timer = math.random(MIN_RANDOM_WALK_TIME, MAX_RANDOM_WALK_TIME),
 			thirst = rnd(thirst_limit) // 1,
 			thirst_limit = thirst_limit,
 			-- "wandering", "to_water" or "returning".
@@ -272,4 +273,4 @@ local mod = {
 	end,
 }
 
-return mod
+return mod
