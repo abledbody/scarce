@@ -166,7 +166,7 @@ function m_entities:query(...)
 	local component_keys = {...}
 	local component_count = #component_keys
 	
-	local by_frequency = userdata("i64", component_count, 2)
+	local by_frequency = userdata("i64", 2, component_count)
 	for i = 1, component_count do
 		local lookup = self.component_lookup[component_keys[i]]
 		if not lookup then return function() end end
