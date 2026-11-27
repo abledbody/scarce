@@ -95,11 +95,13 @@ local function slope(ctx)
 	
 	---@class MapGenerationContext
 	---@field slope userdata f64
+	---@field slope_x userdata f64
+	---@field slope_y userdata f64
 	
 	local height = ctx.height
 	local w, h = height:attribs()
 	
-	local x_slope = userdata("f64", w, h)
+	local slope_x = userdata("f64", w, h)
 		:add(height,     true,     1, w, w - 1, w, w, h - 1) -- NE
 		:add(height * 2, true,     1, 0, w - 1, w, w, h)     -- E
 		:add(height,     true, w + 1, 0, w - 1, w, w, h - 1) -- SE
@@ -110,7 +112,13 @@ local function slope(ctx)
 		
 		:div(8, true)
 	
-	local y_slope = userdata("f64", w, h)
+	slope_x
+		:copy(slope_x, true, 1, 0, 1, w, w, h)
+		:copy(slope_x, true, w - 2, w - 1, 1, w, w, h)
+		:copy(slope_x, true, w, 0, w)
+		:copy(slope_x, true, w * (h - 2), w * (h - 1), w)
+	
+	local slope_y = userdata("f64", w, h)
 		:add(height,     true, 0, w + 1, w - 1, w, w, h - 1) -- NW
 		:add(height * 2, true, 0,     w, w, w, w, h - 1) -- N
 		:add(height,     true, 1,     w, w - 1, w, w, h - 1) -- NE
@@ -121,13 +129,17 @@ local function slope(ctx)
 		
 		:div(8, true)
 	
-	local slope = (x_slope * x_slope + y_slope * y_slope)^0.5
+	slope_y
+		:copy(slope_y, true, 1, 0, 1, w, w, h)
+		:copy(slope_y, true, w - 2, w - 1, 1, w, w, h)
+		:copy(slope_y, true, w, 0, w)
+		:copy(slope_y, true, w * (h - 2), w * (h - 1), w)
+	
+	local slope = (slope_x * slope_x + slope_y * slope_y)^0.5
 	
 	ctx.slope = slope
-		:copy(slope, true, 1, 0, 1, w, w, h)
-		:copy(slope, true, w - 2, w - 1, 1, w, w, h)
-		:copy(slope, true, w, 0, w)
-		:copy(slope, true, w * (h - 2), w * (h - 1), w)
+	ctx.slope_x = slope_x / slope
+	ctx.slope_y = slope_y / slope
 end
 
 ---@param ctx MapGenerationContext

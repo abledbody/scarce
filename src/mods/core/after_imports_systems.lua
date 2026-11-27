@@ -80,9 +80,10 @@ local function register(hook)
 				basis_tile = ctx.res:get("tile", "core_grass_green"),
 				
 				heightmap_layers = {
-					{scale = 32, strength = 1},
-					{scale = 16, strength = 0.6},
-					{scale = 8, strength = 0.5},
+					{scale = 64, strength = 1},
+					{scale = 32, strength = 0.5},
+					{scale = 16, strength = 0.25},
+					{scale = 8, strength = 0.2},
 				},
 				
 				height_affects_temperature = -0.5,
@@ -96,7 +97,7 @@ local function register(hook)
 					{scale = 32, strength = 0.6},
 				},
 				
-				cliff_threshold = 0.07,
+				cliff_threshold = 0.05,
 				
 				snow_temperature_threshold = 0.3,
 				snow_moisture_threshold = 0.1,
